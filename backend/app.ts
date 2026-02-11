@@ -35,16 +35,32 @@ app.use('/api/auth', authRoutes)
 app.use('/api/events', eventsRoutes)
 app.use('/api/processes', processesRoutes)
 
+import { supabase } from './lib/supabase.js';
+
 /**
  * health
  */
 app.use(
   '/api/health',
-  (req: Request, res: Response, next: NextFunction): void => {
-    res.status(200).json({
-      success: true,
-      message: 'ok',
-    })
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        // Simple check to database
+        const { error } = await supabase.from('users').select('id').limit(1);
+        if (error) {
+            throw error;
+        }
+        res.status(200).json({
+          success: true,
+          message: 'ok',
+          database: 'connected'
+        });
+    } catch (e: any) {
+        res.status(503).json({
+            success: false,
+            message: 'service unavailable',
+            error: e.message
+        });
+    }
   },
 )
 

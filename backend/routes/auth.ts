@@ -18,15 +18,18 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
-    // Check if user exists
-    const { data: existingUser } = await supabase
+    // Check if user exists (Supabase will return error if not found, but we should handle graceful 'not found')
+    // Note: If RLS is on and we use anon key, we might not be able to query users table directly.
+    // Ensure we are using Service Role Key in lib/supabase.ts for backend admin tasks.
+    
+    // First, check for duplicate email without throwing
+    const { count } = await supabase
       .from('users')
-      .select('id')
-      .eq('email', email)
-      .single();
+      .select('*', { count: 'exact', head: true })
+      .eq('email', email);
 
-    if (existingUser) {
-      res.status(400).json({ error: 'User already exists' });
+    if (count && count > 0) {
+      res.status(409).json({ error: 'User already exists' });
       return;
     }
 
@@ -46,12 +49,18 @@ router.post('/register', async (req: Request, res: Response): Promise<void> => {
       .single();
 
     if (error) {
+      // Catch unique constraint violation explicitly if race condition occurs
+      if (error.code === '23505') {
+         res.status(409).json({ error: 'User already exists' });
+         return;
+      }
       throw error;
     }
 
     res.status(201).json({ message: 'User created successfully', user: { id: data.id, email: data.email, name: data.name } });
   } catch (error: any) {
     console.error('Registration error:', error);
+    // Return more specific error message if available
     res.status(500).json({ error: error.message || 'Internal server error' });
   }
 });
