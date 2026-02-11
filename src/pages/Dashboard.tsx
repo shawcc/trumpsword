@@ -15,10 +15,19 @@ export default function Dashboard() {
     setTriggerResult(null);
     try {
       const res = await api.post('/events/trigger', {});
-      setTriggerResult({
-        message: `Processed ${res.stats.total_processed} items. Errors: ${res.stats.errors.length}`,
-        type: 'success'
-      });
+      
+      // Check if there are errors even in a success response
+      if (res.stats && res.stats.errors && res.stats.errors.length > 0) {
+          setTriggerResult({
+            message: `Processed ${res.stats.total_processed}. Error: ${res.stats.errors[0]}`, // Show first error
+            type: 'error'
+          });
+      } else {
+          setTriggerResult({
+            message: `Processed ${res.stats.total_processed} items successfully.`,
+            type: 'success'
+          });
+      }
     } catch (e: any) {
       setTriggerResult({
         message: e.message || 'Trigger failed',
