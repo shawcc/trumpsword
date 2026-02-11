@@ -10,7 +10,24 @@ const router = Router();
  * POST /api/auth/register
  */
 router.post('/register', async (req: Request, res: Response): Promise<void> => {
-  const { email, password, name } = req.body;
+  const { email, password, name, inviteCode } = req.body;
+
+  // Validate Invite Code
+  const requiredInviteCode = process.env.REGISTRATION_INVITE_CODE;
+  if (requiredInviteCode && inviteCode !== requiredInviteCode) {
+    res.status(403).json({ error: 'Invalid invite code' });
+    return;
+  }
+
+  // If no invite code configured in env, we might want to block registration or allow (dev mode).
+  // For security, if the var is missing, we block registration unless explicitly allowed.
+  // But to be user friendly, we'll log a warning if it's missing but still allow (or block).
+  // Decision: Block if not set to ensure security by default.
+  if (!requiredInviteCode) {
+     console.warn('Registration attempted but REGISTRATION_INVITE_CODE not set.');
+     res.status(503).json({ error: 'Registration disabled by administrator' });
+     return;
+  }
 
   if (!email || !password || !name) {
     res.status(400).json({ error: 'Email, password and name are required' });

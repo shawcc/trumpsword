@@ -8,6 +8,7 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [inviteCode, setInviteCode] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const setAuth = useAuthStore(s => s.setAuth);
@@ -24,7 +25,7 @@ export default function Login() {
         setAuth(res.user, res.token);
         navigate('/dashboard');
       } else {
-        await api.post('/auth/register', { email, password, name });
+        await api.post('/auth/register', { email, password, name, inviteCode });
         setSuccess('Registration successful! Please login.');
         setIsLogin(true);
       }
@@ -44,16 +45,29 @@ export default function Login() {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Name</label>
-              <input 
-                type="text" 
-                value={name} 
-                onChange={e => setName(e.target.value)} 
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
-                required={!isLogin}
-              />
-            </div>
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Invite Code</label>
+                <input 
+                  type="text" 
+                  value={inviteCode} 
+                  onChange={e => setInviteCode(e.target.value)} 
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
+                  required={!isLogin}
+                  placeholder="Enter administrator invite code"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input 
+                  type="text" 
+                  value={name} 
+                  onChange={e => setName(e.target.value)} 
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 border p-2"
+                  required={!isLogin}
+                />
+              </div>
+            </>
           )}
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
