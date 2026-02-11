@@ -80,6 +80,13 @@ export const workflowService = {
         // Project Key would typically come from configuration
         const projectKey = process.env.MEEGLE_PROJECT_KEY || 'POLITICS_DEMO';
         
+        // Validation: If Project Key is still default or missing, we can't sync.
+        if (!projectKey || projectKey === 'POLITICS_DEMO') {
+            console.error('[Workflow] CRITICAL: MEEGLE_PROJECT_KEY is missing or default. Cannot sync to Meegle.');
+            // We return early but don't throw, so the local process is still created.
+            return process;
+        }
+        
         // Dynamic Mapping Logic
         let targetTypeKey = event.type.toUpperCase();
         

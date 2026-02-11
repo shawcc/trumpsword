@@ -52,6 +52,8 @@ TrumpSword is an intelligent plugin system that tracks political promises and wo
     *   `OPENAI_BASE_URL`: (Optional) Custom LLM URL (e.g., https://api.deepseek.com/v1)
     *   `MEEGLE_PLUGIN_ID`: Your Meegle Plugin ID
     *   `MEEGLE_PLUGIN_SECRET`: Your Meegle Plugin Secret
+    *   `MEEGLE_PROJECT_KEY`: **CRITICAL** - Your Meegle Project Key (Get this from your Meegle project URL, e.g., `/project/696860...`)
+    *   `REGISTRATION_INVITE_CODE`: Secret code for user registration
 5.  Click **Deploy**.
 
 ### Step 4: Verify Deployment
