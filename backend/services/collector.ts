@@ -13,13 +13,13 @@ export const collectorService = {
     };
 
     // 1. Congress
-    /* 
-    // Temporarily disabled due to Congress.gov blocking automated requests (Cloudflare)
     try {
       const billsData = await congressService.fetchRecentBills();
       if (billsData && billsData.bills) {
         for (const bill of billsData.bills) {
             try {
+                // Use a consistent ID for Congress bills
+                // e.g. bill-hr123-119
                 await this.processEvent(bill, 'congress');
                 results.added++;
             } catch (innerError: any) {
@@ -31,7 +31,6 @@ export const collectorService = {
       console.error('Congress Collection Error:', e);
       results.errors.push(`Congress Error: ${e.message}`);
     }
-    */
 
     // 2. WhiteHouse
     try {
@@ -52,6 +51,48 @@ export const collectorService = {
     }
     
     console.log('Collection job finished.', results);
+    return results;
+  },
+
+  async collectHistorical(sinceDate = new Date('2025-01-20')) {
+    console.log(`Starting historical collection since ${sinceDate.toISOString()}...`);
+    const results = { added: 0, errors: [] as string[] };
+
+    // 1. WhiteHouse Historical
+    try {
+        const orders = await whiteHouseService.fetchHistoricalOrders(sinceDate);
+        console.log(`[Collector] Found ${orders.length} historical WhiteHouse orders.`);
+        for (const order of orders) {
+            try {
+                await this.processEvent(order, 'whitehouse');
+                results.added++;
+            } catch (e: any) {
+                console.error('Error processing historical order:', e);
+            }
+        }
+    } catch (e: any) {
+        console.error('WhiteHouse Historical Error:', e);
+        results.errors.push(`WhiteHouse Error: ${e.message}`);
+    }
+
+    // 2. Congress (Best Effort)
+    try {
+        const billsData = await congressService.fetchHistoricalBills(sinceDate);
+        if (billsData && billsData.bills) {
+             for (const bill of billsData.bills) {
+                try {
+                    await this.processEvent(bill, 'congress');
+                    results.added++;
+                } catch (e: any) {
+                    console.error('Error processing historical bill:', e);
+                }
+            }
+        }
+    } catch (e: any) {
+        console.error('Congress Historical Error:', e);
+        results.errors.push(`Congress Error: ${e.message}`);
+    }
+    
     return results;
   },
 

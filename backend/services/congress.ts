@@ -63,5 +63,13 @@ export const congressService = {
         // Don't throw, return empty so dashboard still loads partial data
         return { bills: [] };
     }
+  },
+
+  async fetchHistoricalBills(sinceDate: Date) {
+      // Congress.gov blocks deep scraping and API requires key.
+      // For now, we return the recent bills which is the best we can do without an API key.
+      // In a real production app, we would use the ProPublica API or Congress.gov API here.
+      console.log('[Congress] Fetching historical bills (limited to recent RSS due to API restrictions)...');
+      return this.fetchRecentBills(50);
   }
 };

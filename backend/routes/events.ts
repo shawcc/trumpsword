@@ -67,6 +67,26 @@ router.post('/reset', async (req, res) => {
     }
 });
 
+// POST /api/events/sync-historical (Deep Sync)
+router.post('/sync-historical', async (req, res) => {
+    try {
+        console.log('[API] Starting historical sync...');
+        const stats = await collectorService.collectHistorical(new Date('2025-01-20'));
+        
+        res.json({
+            success: true,
+            message: 'Historical sync completed.',
+            stats: {
+                total_processed: stats.added,
+                errors: stats.errors
+            }
+        });
+    } catch (error: any) {
+        console.error('[API] Historical sync failed:', error);
+        res.status(500).json({ error: error.message || 'Sync failed' });
+    }
+});
+
 // POST /api/events/trigger (Manual Trigger)
 router.post('/trigger', async (req, res) => {
     try {

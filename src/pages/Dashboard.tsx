@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/auth';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Gavel, UserCheck, Activity, AlertCircle, RefreshCw, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { FileText, Gavel, UserCheck, Activity, AlertCircle, RefreshCw, CheckCircle, XCircle, Clock, Calendar } from 'lucide-react';
 import { api } from '../lib/api';
 
 export default function Dashboard() {
@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [triggering, setTriggering] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [syncingHistory, setSyncingHistory] = useState(false);
   const [triggerResult, setTriggerResult] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
 
@@ -45,6 +46,28 @@ export default function Dashboard() {
         });
     } finally {
         setResetting(false);
+    }
+  };
+
+  const handleHistoricalSync = async () => {
+    if (!confirm('This will fetch ALL White House data since Jan 20, 2025. It may take a while. Continue?')) return;
+    
+    setSyncingHistory(true);
+    setTriggerResult(null);
+    try {
+        const res = await api.post('/events/sync-historical', {});
+        setTriggerResult({
+            message: res.message || 'Historical sync complete',
+            type: 'success'
+        });
+        await fetchRecentEvents();
+    } catch (e: any) {
+        setTriggerResult({
+            message: e.message || 'Historical sync failed',
+            type: 'error'
+        });
+    } finally {
+        setSyncingHistory(false);
     }
   };
 
@@ -128,6 +151,15 @@ export default function Dashboard() {
                     {triggerResult.message}
                 </span>
             )}
+            <button 
+                onClick={handleHistoricalSync}
+                disabled={syncingHistory}
+                className={`flex items-center px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 focus:outline-none disabled:opacity-50 transition-colors`}
+                title="Fetch all data since Jan 20, 2025"
+            >
+                <Calendar className={`w-4 h-4 mr-2 ${syncingHistory ? 'animate-spin' : ''}`} />
+                {syncingHistory ? 'Syncing History...' : 'Historical Sync'}
+            </button>
             <button 
                 onClick={handleResetData}
                 disabled={resetting}
