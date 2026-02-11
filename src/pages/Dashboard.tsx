@@ -191,7 +191,15 @@ export default function Dashboard() {
                         recentEvents.map((event: any) => (
                             <tr key={event.id}>
                                 <td className="px-6 py-4">
-                                    <div className="text-sm font-medium text-gray-900 truncate max-w-xs" title={event.title}>{event.title}</div>
+                                    <div className="text-sm font-medium text-gray-900 truncate max-w-xs" title={event.title}>
+                                        {event.raw_data?.url ? (
+                                            <a href={event.raw_data.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                                {event.title}
+                                            </a>
+                                        ) : (
+                                            event.title
+                                        )}
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${event.source === 'whitehouse' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
