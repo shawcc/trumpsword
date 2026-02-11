@@ -179,9 +179,11 @@ export const workflowService = {
             payload
         );
         console.log('Synced to Meegle:', meegleItem);
-    } catch (e) {
+    } catch (e: any) {
         console.error('Failed to sync to Meegle:', e);
-        // We don't fail the whole process if Meegle sync fails, we might retry later
+        // CRITICAL FIX: Rethrow error so the caller knows sync failed!
+        // Previously this was swallowed, leading to "Fake Success" reports.
+        throw new Error(`Meegle Sync Failed: ${e.message}`);
     }
     
     return process;

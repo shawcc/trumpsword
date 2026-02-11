@@ -64,12 +64,21 @@ export const collectorService = {
 
     const { data: existing } = await supabase
       .from('events')
-      .select('id')
+      .select('id, type, title, event_date, raw_data') // Need more fields to retry sync
       .eq('external_id', String(externalId))
       .single();
 
     if (existing) {
-        // console.log(`Event ${externalId} already exists.`);
+        // Logic Fix: Even if event exists locally, check if it needs Meegle sync.
+        // We try to trigger workflow again. Workflow service handles deduplication of *processes* if needed,
+        // or just idempotently updates.
+        console.log(`Event ${externalId} exists. Retrying workflow/sync...`);
+        try {
+            await workflowService.startProcess(existing);
+        } catch (e: any) {
+            console.error(`Retry sync failed for ${externalId}:`, e);
+            throw e; // Propagate error to caller
+        }
         return; 
     }
 

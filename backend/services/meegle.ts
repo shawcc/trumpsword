@@ -151,9 +151,25 @@ export const meegleService = {
     
     if (!response.ok) {
       const errorText = await response.text();
+      // Detailed logging for debugging sync issues
+      console.error(`[Meegle API] Create Work Item Failed.`);
+      console.error(`Status: ${response.status} ${response.statusText}`);
+      console.error(`Endpoint: ${MEEGLE_API_BASE}/projects/${projectKey}/work_items`);
+      console.error(`Type Key: ${workItemType}`);
+      console.error(`Payload:`, JSON.stringify(fields, null, 2));
+      console.error(`Error Body: ${errorText}`);
       throw new Error(`Meegle API Error (${response.status}): ${errorText}`);
     }
-    return response.json();
+    
+    const data = await response.json();
+    // Check internal code if successful HTTP status but business error
+    if (data.code && data.code !== 0) {
+        console.error(`[Meegle API] Business Error: ${data.msg}`);
+        console.error(`Response:`, data);
+        throw new Error(`Meegle Business Error: ${data.msg}`);
+    }
+    
+    return data;
   },
 
   /**
