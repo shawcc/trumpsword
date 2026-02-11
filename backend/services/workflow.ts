@@ -75,31 +75,43 @@ export const workflowService = {
       transition_data: { reason: 'Initial creation' }
     });
 
-    // 5. Sync to Meegle
+        // 5. Sync to Meegle
     try {
         // Project Key would typically come from configuration
         const projectKey = process.env.MEEGLE_PROJECT_KEY || 'POLITICS_DEMO';
         
-        // Dynamic Mapping: Try to find a matching Work Item Type in the project
-        const availableTypes = await meegleService.getWorkItemTypes(projectKey);
-        
-        // Mapping Logic: 
-        // 1. Try exact match on key (e.g. "LEGISLATIVE")
-        // 2. Try partial match on name (e.g. "Legislative" in "Legislative Process")
-        // 3. Fallback to default key (event.type.toUpperCase())
-        
+        // Dynamic Mapping Logic
         let targetTypeKey = event.type.toUpperCase();
         
-        const match = availableTypes.find((t: any) => 
-            t.type_key === targetTypeKey || 
-            t.name.toLowerCase().includes(event.type.toLowerCase())
-        );
-
-        if (match) {
-            console.log(`[Workflow] Mapped internal type '${event.type}' to Meegle type '${match.name}' (${match.type_key})`);
-            targetTypeKey = match.type_key;
+        // 1. Check for explicit manual mapping in env vars
+        // Format: MEEGLE_TYPE_MAP='{"legislative": "story_123", "executive": "task_456"}'
+        const manualMapStr = process.env.MEEGLE_TYPE_MAP;
+        let manualMap: Record<string, string> = {};
+        if (manualMapStr) {
+            try {
+                manualMap = JSON.parse(manualMapStr);
+            } catch (e) {
+                console.error('[Workflow] Failed to parse MEEGLE_TYPE_MAP JSON', e);
+            }
+        }
+        
+        if (manualMap[event.type]) {
+            targetTypeKey = manualMap[event.type];
+            console.log(`[Workflow] Used manual mapping for '${event.type}' -> '${targetTypeKey}'`);
         } else {
-            console.warn(`[Workflow] No matching Meegle type found for '${event.type}'. Using default key '${targetTypeKey}'. Ensure this Type Key exists in project '${projectKey}'.`);
+            // 2. Auto-discovery from Meegle Project
+            const availableTypes = await meegleService.getWorkItemTypes(projectKey);
+            const match = availableTypes.find((t: any) => 
+                t.type_key === targetTypeKey || 
+                t.name.toLowerCase().includes(event.type.toLowerCase())
+            );
+
+            if (match) {
+                console.log(`[Workflow] Mapped internal type '${event.type}' to Meegle type '${match.name}' (${match.type_key})`);
+                targetTypeKey = match.type_key;
+            } else {
+                console.warn(`[Workflow] No matching Meegle type found for '${event.type}'. Using default key '${targetTypeKey}'. Ensure this Type Key exists in project '${projectKey}'.`);
+            }
         }
         
         const meegleItem = await meegleService.createWorkItem(
