@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/auth';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Gavel, UserCheck, Activity, AlertCircle, RefreshCw } from 'lucide-react';
+import { FileText, Gavel, UserCheck, Activity, AlertCircle, RefreshCw, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { api } from '../lib/api';
 
 export default function Dashboard() {
@@ -9,6 +9,20 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [triggering, setTriggering] = useState(false);
   const [triggerResult, setTriggerResult] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+  const [recentEvents, setRecentEvents] = useState<any[]>([]);
+
+  const fetchRecentEvents = async () => {
+      try {
+          const res = await api.get('/events?limit=10');
+          setRecentEvents(res.data || []);
+      } catch (e) {
+          console.error('Failed to fetch events:', e);
+      }
+  };
+
+  useEffect(() => {
+      fetchRecentEvents();
+  }, []);
 
   const handleManualTrigger = async () => {
     setTriggering(true);
@@ -28,6 +42,8 @@ export default function Dashboard() {
             type: 'success'
           });
       }
+      // Refresh list
+      await fetchRecentEvents();
     } catch (e: any) {
       setTriggerResult({
         message: e.message || 'Trigger failed',
@@ -36,6 +52,12 @@ export default function Dashboard() {
     } finally {
       setTriggering(false);
     }
+  };
+
+  const getSyncStatusIcon = (status: string, error?: string) => {
+      if (status === 'success') return <CheckCircle className="w-5 h-5 text-green-500" />;
+      if (status === 'failed') return <XCircle className="w-5 h-5 text-red-500" />;
+      return <Clock className="w-5 h-5 text-yellow-500" />;
   };
 
   return (
@@ -66,6 +88,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* ... Cards ... */}
         <div 
             className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" 
             onClick={() => navigate('/processes/legislative')}
@@ -103,6 +126,61 @@ export default function Dashboard() {
             </div>
           </div>
           <p className="text-gray-500 text-sm">Track nominations and confirmation hearings.</p>
+        </div>
+      </div>
+
+      {/* Live Data Feed Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-gray-800">Live Data Feed</h3>
+            <button onClick={fetchRecentEvents} className="text-sm text-blue-600 hover:underline">Refresh</button>
+        </div>
+        <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                    <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type (AI)</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meegle Sync</th>
+                    </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                    {recentEvents.length === 0 ? (
+                        <tr>
+                            <td colSpan={5} className="px-6 py-4 text-center text-sm text-gray-500">No events found. Click 'Sync Events' to fetch data.</td>
+                        </tr>
+                    ) : (
+                        recentEvents.map((event: any) => (
+                            <tr key={event.id}>
+                                <td className="px-6 py-4">
+                                    <div className="text-sm font-medium text-gray-900 truncate max-w-xs" title={event.title}>{event.title}</div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${event.source === 'whitehouse' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
+                                        {event.source}
+                                    </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{event.type}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {new Date(event.event_date).toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center">
+                                        {getSyncStatusIcon(event.meegle_sync_status, event.meegle_sync_error)}
+                                        {event.meegle_sync_status === 'failed' && (
+                                            <span className="ml-2 text-xs text-red-600 truncate max-w-[150px]" title={event.meegle_sync_error}>
+                                                {event.meegle_sync_error}
+                                            </span>
+                                        )}
+                                    </div>
+                                </td>
+                            </tr>
+                        ))
+                    )}
+                </tbody>
+            </table>
         </div>
       </div>
 

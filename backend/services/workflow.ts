@@ -179,8 +179,22 @@ export const workflowService = {
             payload
         );
         console.log('Synced to Meegle:', meegleItem);
+        
+        // Update Event Sync Status: Success
+        await supabase.from('events').update({
+            meegle_sync_status: 'success',
+            meegle_sync_error: null
+        }).eq('id', event.id);
+
     } catch (e: any) {
         console.error('Failed to sync to Meegle:', e);
+        
+        // Update Event Sync Status: Failed
+        await supabase.from('events').update({
+            meegle_sync_status: 'failed',
+            meegle_sync_error: e.message
+        }).eq('id', event.id);
+
         // CRITICAL FIX: Rethrow error so the caller knows sync failed!
         // Previously this was swallowed, leading to "Fake Success" reports.
         throw new Error(`Meegle Sync Failed: ${e.message}`);
