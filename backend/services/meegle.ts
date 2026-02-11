@@ -86,6 +86,38 @@ export const meegleService = {
   },
 
   /**
+   * Fetch fields for a specific work item type
+   */
+  async getWorkItemTypeFields(projectKey: string, workItemTypeKey: string) {
+    const token = await getAccessToken();
+    if (!PLUGIN_ID) {
+      // Mock fields
+      return [
+        { field_key: 'title', name: 'Title' },
+        { field_key: 'field_trump_said', name: 'Trump said that' },
+        { field_key: 'field_we_need_to', name: 'We need to' },
+        { field_key: 'field_which_means', name: 'Which means' },
+        { field_key: 'field_start_date', name: 'It should started at' }
+      ];
+    }
+
+    // Usually: GET /projects/:project_key/work_item_types/:type_key/fields
+    const response = await fetch(`${MEEGLE_API_BASE}/projects/${projectKey}/work_item_types/${workItemTypeKey}/fields`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+       const errorText = await response.text();
+       console.error(`Meegle API Error (getFields): ${errorText}`);
+       return [];
+    }
+    
+    const data = await response.json();
+    return data.data?.fields || [];
+  },
+
+  /**
    * Create a new work item (process instance) in Meegle
    */
   async createWorkItem(projectKey: string, workItemType: string, fields: any) {
