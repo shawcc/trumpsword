@@ -1,10 +1,33 @@
+import { useState } from 'react';
 import { useAuthStore } from '../store/auth';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Gavel, UserCheck, Activity, AlertCircle } from 'lucide-react';
+import { FileText, Gavel, UserCheck, Activity, AlertCircle, RefreshCw } from 'lucide-react';
+import { api } from '../lib/api';
 
 export default function Dashboard() {
   const user = useAuthStore(s => s.user);
   const navigate = useNavigate();
+  const [triggering, setTriggering] = useState(false);
+  const [triggerResult, setTriggerResult] = useState<{message: string, type: 'success' | 'error'} | null>(null);
+
+  const handleManualTrigger = async () => {
+    setTriggering(true);
+    setTriggerResult(null);
+    try {
+      const res = await api.post('/events/trigger', {});
+      setTriggerResult({
+        message: `Processed ${res.stats.total_processed} items. Errors: ${res.stats.errors.length}`,
+        type: 'success'
+      });
+    } catch (e: any) {
+      setTriggerResult({
+        message: e.message || 'Trigger failed',
+        type: 'error'
+      });
+    } finally {
+      setTriggering(false);
+    }
+  };
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
@@ -13,8 +36,21 @@ export default function Dashboard() {
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-500 mt-1">Welcome back, {user?.name}</p>
         </div>
-        <div className="flex space-x-2">
-            <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full flex items-center">
+        <div className="flex space-x-2 items-center">
+            {triggerResult && (
+                <span className={`text-sm px-3 py-1 rounded-full ${triggerResult.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    {triggerResult.message}
+                </span>
+            )}
+            <button 
+                onClick={handleManualTrigger}
+                disabled={triggering}
+                className={`flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none disabled:opacity-50 transition-colors`}
+            >
+                <RefreshCw className={`w-4 h-4 mr-2 ${triggering ? 'animate-spin' : ''}`} />
+                {triggering ? 'Syncing...' : 'Sync Events'}
+            </button>
+            <span className="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full flex items-center h-9">
                 <Activity className="w-4 h-4 mr-1" /> System Online
             </span>
         </div>

@@ -1,7 +1,27 @@
 import { Router } from 'express';
 import { supabase } from '../lib/supabase.js';
+import { collectorService } from '../services/collector.js';
 
 const router = Router();
+
+// POST /api/events/trigger (Manual Trigger)
+router.post('/trigger', async (req, res) => {
+    try {
+        console.log('[API] Manual event collection triggered');
+        const results = await collectorService.collectAll();
+        res.json({ 
+            success: true, 
+            message: 'Collection triggered successfully',
+            stats: {
+                total_processed: results.added,
+                errors: results.errors
+            }
+        });
+    } catch (error: any) {
+        console.error('[API] Trigger failed:', error);
+        res.status(500).json({ error: error.message || 'Collection failed' });
+    }
+});
 
 // GET /api/events
 router.get('/', async (req, res) => {
