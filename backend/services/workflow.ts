@@ -104,47 +104,31 @@ export const workflowService = {
         // 2. Auto-discovery and Rule-based Mapping
         const availableTypes = await meegleService.getWorkItemTypes(projectKey);
         
-        // Custom Mapping based on screenshots
-        // 1. Legislative -> "Bill"
-        // 2. Executive -> "Executive Orders" or "PolicyDirectives & Memoranda"
-        // 3. Appointment/Issue -> "Oops" (as per user's "Oops" type) or generic "Task"
-        
+        // Strict Mapping based on user's New Design
         const typeMappingRules = [
-            { internal: 'legislative', targets: ['Bill', 'Legislate', 'Legislative'] },
-            { internal: 'executive', targets: ['Executive Orders', 'Executive Order', 'PolicyDirectives', 'Policy'] },
-            { internal: 'appointment', targets: ['Oops', 'Appointment', 'Nomination'] } // User seems to use 'Oops' for issues
+            { internal: 'legislative', targetName: 'Bill' },
+            { internal: 'executive', targetName: 'Executive Orders' },
+            { internal: 'appointment', targetName: 'Oops' }
         ];
 
         let match: any = null;
         
-        // 1. Try manual map first
-        if (manualMap[event.type]) {
-             match = availableTypes.find((t: any) => t.type_key === manualMap[event.type]);
-        }
-
-        // 2. Try rule-based mapping
-        if (!match) {
-            const rules = typeMappingRules.find(r => r.internal === event.type);
-            if (rules) {
-                match = availableTypes.find((t: any) => 
-                    rules.targets.some(target => t.name.includes(target) || t.type_key.includes(target))
-                );
+        const rule = typeMappingRules.find(r => r.internal === event.type);
+        if (rule) {
+            // Try to find by Exact Name first, then Partial Name
+            match = availableTypes.find((t: any) => t.name === rule.targetName);
+            if (!match) {
+                 match = availableTypes.find((t: any) => t.name.includes(rule.targetName));
             }
-        }
-
-        // 3. Fallback to generic search
-        if (!match) {
-             match = availableTypes.find((t: any) => 
-                t.type_key === targetTypeKey || 
-                t.name.toLowerCase().includes(event.type.toLowerCase())
-            );
         }
 
         if (match) {
             console.log(`[Workflow] Mapped internal type '${event.type}' to Meegle type '${match.name}' (${match.type_key})`);
             targetTypeKey = match.type_key;
         } else {
-            console.warn(`[Workflow] No matching Meegle type found for '${event.type}'. Using default key '${targetTypeKey}'.`);
+            console.warn(`[Workflow] CRITICAL: Could not find Meegle Type '${rule?.targetName}' for event '${event.type}'. Please ensure Meegle project is configured correctly.`);
+            // If strictly enforcing new design, we might want to return here or use a fallback.
+            // For now, we proceed but log a warning, it might fail if targetTypeKey is invalid.
         }
         
         // 3. Dynamic Field Mapping
@@ -152,9 +136,7 @@ export const workflowService = {
         const typeFields = await meegleService.getWorkItemTypeFields(projectKey, targetTypeKey);
         
         // Prepare standard payload
-        let payload: any = {
-            title: event.title
-        };
+        let payload: any = {};
 
         // Helper to find field key by name (case insensitive partial match)
         const findFieldKey = (name: string) => {
@@ -162,37 +144,34 @@ export const workflowService = {
             return f ? f.field_key : null;
         };
 
-        // Map "Goals" / "Bill" / "Executive Orders" specific fields
-        // "Trump said that" -> Title/Summary
+        // --- Standardized Field Mapping for New Design ---
+        
+        // 1. "Trump said that" -> Title / Event Content
         const trumpSaidKey = findFieldKey('Trump said that');
         if (trumpSaidKey) payload[trumpSaidKey] = event.title; 
-
-        // "We need to" -> Action Item / Title
+        
+        // 2. "We need to" -> Action Title (e.g. "Process Bill HR.123")
         const weNeedToKey = findFieldKey('We need to');
         if (weNeedToKey) payload[weNeedToKey] = `Process ${event.type}: ${event.title}`;
 
-        // "Which means" -> Summary / Analysis
+        // 3. "Which means" -> AI Analysis / Summary
         const whichMeansKey = findFieldKey('Which means');
         if (whichMeansKey) payload[whichMeansKey] = event.raw_data.summary || 'AI Analysis Pending...';
 
-        // "It should started at" -> Date
+        // 4. "It should started at" -> Date
         const startDateKey = findFieldKey('It should started at');
         if (startDateKey) payload[startDateKey] = new Date(event.event_date).getTime();
         
-        // "Tag" -> Multi Select
+        // 5. "Tag" -> Multi Select (Default value)
         const tagKey = findFieldKey('Tag');
         if (tagKey) payload[tagKey] = ['Make America Great Again']; 
 
-        // Map "Oops" specific fields if needed
-        if (match && match.name === 'Oops') {
-             // Description mapping for Oops
-             const descKey = findFieldKey('description') || findFieldKey('描述');
-             if (descKey) payload[descKey] = event.raw_data.summary;
-        }
-
-        // Generic URL mapping
-        const linkKey = findFieldKey('link') || findFieldKey('url') || findFieldKey('source');
+        // 6. Source Link (if field exists)
+        const linkKey = findFieldKey('Source Link') || findFieldKey('link');
         if (linkKey) payload[linkKey] = event.raw_data.url || '';
+
+        // 7. Title (System Field) - Always set title if possible
+        payload['title'] = event.title;
 
         const meegleItem = await meegleService.createWorkItem(
             projectKey, 
