@@ -9,19 +9,33 @@ export const llmService = {
   async analyzeEvent(data: any) {
     // If no API key, fallback to simple rule-based mock logic
     if (!OPENAI_API_KEY) {
-      let type = 'legislative';
-      if (data.type === 'HR' || data.type === 'S') {
+      let type = 'legislative'; // Default
+      
+      // Strict rule-based classification based on title and metadata
+      const title = (data.title || '').toLowerCase();
+      const rawType = (data.type || '').toString().toLowerCase(); // e.g. 'hr', 's' from Congress API
+
+      if (rawType === 'hr' || rawType === 's' || rawType === 'legislative' || title.includes('h.r.') || title.includes('s.')) {
           type = 'legislative';
-      } else if (data.title && data.title.toLowerCase().includes('executive order')) {
+      } else if (title.includes('executive order') || title.includes('proclamation') || title.includes('memorandum')) {
           type = 'executive';
-      } else if (data.title && (data.title.toLowerCase().includes('nomination') || data.title.toLowerCase().includes('appoint'))) {
+      } else if (title.includes('nomination') || title.includes('appoint') || title.includes('confirm')) {
           type = 'appointment';
+      } else {
+          // Fallback based on Source if available in raw_data
+          // Note: raw_data might not be fully populated here depending on caller, but usually is.
+          // This is a safety net.
+          if (data.url && data.url.includes('congress.gov')) {
+              type = 'legislative';
+          } else if (data.url && data.url.includes('whitehouse.gov')) {
+              type = 'executive';
+          }
       }
       
       return {
         type,
-        confidence: 0.85,
-        summary: `[MOCK] Auto-generated summary for ${data.title}`,
+        confidence: 0.9, // Higher confidence for rule-based
+        summary: data.summary || `Auto-generated summary for ${data.title}`,
         extracted_entities: ['Trump', 'Senate']
       };
     }

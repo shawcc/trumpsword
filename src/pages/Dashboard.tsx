@@ -38,8 +38,12 @@ export default function Dashboard() {
             type: 'error'
           });
       } else {
+          const msg = res.stats.total_processed > 0 
+            ? `Successfully processed ${res.stats.total_processed} new items.`
+            : `Sync complete. No new items found (everything up to date).`;
+            
           setTriggerResult({
-            message: `Processed ${res.stats.total_processed} items successfully.`,
+            message: msg,
             type: 'success'
           });
       }
