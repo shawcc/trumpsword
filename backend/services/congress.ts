@@ -1,41 +1,43 @@
 import dotenv from 'dotenv';
+import Parser from 'rss-parser';
+
 dotenv.config();
 
-const CONGRESS_API_KEY = process.env.CONGRESS_API_KEY;
-const BASE_URL = 'https://api.congress.gov/v3';
+const parser = new Parser();
+const CONGRESS_RSS_URL = 'https://www.congress.gov/rss/bill/most-recent-bills.xml';
 
 export const congressService = {
   async fetchRecentBills(limit = 20) {
-    if (!CONGRESS_API_KEY) {
-      console.log('[Mock Congress] Fetching recent bills');
-      // Return some mock data for development
-      return {
-        bills: [
-          {
-            number: '1234',
-            title: 'To improve the economy',
-            type: 'HR',
-            updateDate: new Date().toISOString()
-          },
-          {
-            number: '5678',
-            title: 'To secure the border',
-            type: 'S',
-            updateDate: new Date().toISOString()
-          }
-        ]
-      };
-    }
-    
+    console.log('[Congress] Fetching recent bills from RSS...');
     try {
-      const response = await fetch(`${BASE_URL}/bill?limit=${limit}&api_key=${CONGRESS_API_KEY}&format=json`);
-      if (!response.ok) {
-        throw new Error(`Congress API Error: ${response.statusText}`);
-      }
-      return response.json();
+        const feed = await parser.parseURL(CONGRESS_RSS_URL);
+        
+        const bills = feed.items.map(item => {
+            // Extract type and number from title if possible, e.g. "H.R. 123 - Title"
+            let type = 'legislative'; // Internal type
+            let number = '';
+            
+            if (item.title) {
+                const match = item.title.match(/^([A-Z]\.?[A-Z]?\.?)\s*(\d+)/i);
+                if (match) {
+                    number = match[2];
+                }
+            }
+
+            return {
+                number: number || 'unknown',
+                title: item.title || 'Untitled Bill',
+                type: 'legislative', // Uniform type for our internal logic
+                updateDate: item.pubDate || new Date().toISOString(),
+                url: item.link || '',
+                summary: item.contentSnippet || ''
+            };
+        });
+
+        return { bills: bills.slice(0, limit) };
     } catch (error) {
-      console.error('Error fetching from Congress API:', error);
-      throw error;
+        console.error('Error fetching Congress RSS:', error);
+        throw new Error('Failed to fetch Congress data');
     }
   }
 };

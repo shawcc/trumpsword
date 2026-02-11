@@ -20,7 +20,10 @@ async function getAccessToken() {
   }
 
   if (!PLUGIN_ID || !PLUGIN_SECRET) {
-    console.log('Fetching new Meegle access token (MOCK)...');
+    console.error('CRITICAL: Missing MEEGLE_PLUGIN_ID or MEEGLE_PLUGIN_SECRET.');
+    console.error('System is running in MOCK MODE. Data will NOT be synced to Meegle.');
+    
+    // Return mock token to allow local dev, but log heavily
     accessToken = 'mock_meegle_token_' + now;
     tokenExpiry = now + 7200 * 1000;
     return accessToken;

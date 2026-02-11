@@ -1,18 +1,25 @@
+import Parser from 'rss-parser';
+
+const parser = new Parser();
+const FEED_URL = 'https://www.whitehouse.gov/presidential-actions/feed/';
+
 export const whiteHouseService = {
   async fetchExecutiveOrders() {
-    console.log('[Mock WhiteHouse] Fetching Executive Orders');
-    // In a real implementation, this might scrape the White House website or parse an RSS feed
-    return [
-      {
-        title: 'Executive Order on Artificial Intelligence',
-        date: new Date().toISOString(),
-        url: 'https://www.whitehouse.gov/briefing-room/presidential-actions/2023/10/30/executive-order-on-the-safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence/'
-      },
-      {
-        title: 'Executive Order on Immigration',
-        date: new Date(Date.now() - 86400000).toISOString(),
-        url: 'https://www.whitehouse.gov/briefing-room/presidential-actions/'
-      }
-    ];
+    console.log('[WhiteHouse] Fetching Executive Orders from RSS...');
+    try {
+        const feed = await parser.parseURL(FEED_URL);
+        const orders = feed.items.map(item => ({
+            title: item.title || 'Untitled Order',
+            date: item.pubDate || new Date().toISOString(),
+            url: item.link || '',
+            summary: item.contentSnippet || item.content || ''
+        }));
+        
+        // Filter for "Executive Order" in title to be precise
+        return orders.filter(o => o.title.toLowerCase().includes('executive order'));
+    } catch (error) {
+        console.error('Error fetching White House RSS:', error);
+        throw new Error('Failed to fetch White House data');
+    }
   }
 };
