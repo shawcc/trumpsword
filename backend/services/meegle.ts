@@ -4,8 +4,10 @@ dotenv.config();
 
 const MEEGLE_API_BASE = process.env.MEEGLE_API_BASE || 'https://open.larksuite.com/open-apis/project/v1';
 const AUTH_API_BASE = 'https://open.larksuite.com/open-apis/auth/v3';
-const MEEGLE_APP_ID = process.env.MEEGLE_APP_ID;
-const MEEGLE_APP_SECRET = process.env.MEEGLE_APP_SECRET;
+// Support both standard App ID (Lark App) and Plugin ID (Meegle Plugin)
+// In Meegle Plugin context: MEEGLE_PLUGIN_ID & MEEGLE_PLUGIN_SECRET are used.
+const PLUGIN_ID = process.env.MEEGLE_PLUGIN_ID || process.env.MEEGLE_APP_ID;
+const PLUGIN_SECRET = process.env.MEEGLE_PLUGIN_SECRET || process.env.MEEGLE_APP_SECRET;
 
 // Token management
 let accessToken = '';
@@ -17,20 +19,22 @@ async function getAccessToken() {
     return accessToken;
   }
 
-  if (!MEEGLE_APP_ID || !MEEGLE_APP_SECRET) {
+  if (!PLUGIN_ID || !PLUGIN_SECRET) {
     console.log('Fetching new Meegle access token (MOCK)...');
     accessToken = 'mock_meegle_token_' + now;
     tokenExpiry = now + 7200 * 1000;
     return accessToken;
   }
 
-  console.log('Fetching new Meegle tenant access token...');
+  console.log('Fetching new Meegle tenant access token (Plugin Auth)...');
+  // Note: Meegle Plugins use the same auth endpoint as Lark Apps for tenant_access_token
+  // using app_id = plugin_id and app_secret = plugin_secret.
   const response = await fetch(`${AUTH_API_BASE}/tenant_access_token/internal`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      app_id: MEEGLE_APP_ID,
-      app_secret: MEEGLE_APP_SECRET
+      app_id: PLUGIN_ID,
+      app_secret: PLUGIN_SECRET
     })
   });
 
@@ -54,7 +58,7 @@ export const meegleService = {
    */
   async getWorkItemTypes(projectKey: string) {
     const token = await getAccessToken();
-    if (!MEEGLE_APP_ID) {
+    if (!PLUGIN_ID) {
       // Mock data
       return [
         { type_key: 'LEGISLATIVE', name: 'Legislative Process' },
@@ -87,7 +91,7 @@ export const meegleService = {
   async createWorkItem(projectKey: string, workItemType: string, fields: any) {
     const token = await getAccessToken();
     // Mocking the call if no real API credentials
-    if (!MEEGLE_APP_ID) {
+    if (!PLUGIN_ID) {
       console.log(`[Mock Meegle] Create Work Item in ${projectKey}, type: ${workItemType}`, fields);
       return {
         data: {
@@ -125,7 +129,7 @@ export const meegleService = {
    */
   async updateWorkItem(workItemId: string, fields: any) {
     const token = await getAccessToken();
-     if (!MEEGLE_APP_ID) {
+     if (!PLUGIN_ID) {
       console.log(`[Mock Meegle] Update Work Item ${workItemId}`, fields);
       return { data: { work_item: { id: workItemId, fields } } };
     }
@@ -151,7 +155,7 @@ export const meegleService = {
    */
   async transitionState(workItemId: string, transitionId: string) {
      const token = await getAccessToken();
-      if (!MEEGLE_APP_ID) {
+      if (!PLUGIN_ID) {
       console.log(`[Mock Meegle] Transition Work Item ${workItemId} via ${transitionId}`);
       return { data: { work_item: { id: workItemId, transition_id: transitionId } } };
     }
