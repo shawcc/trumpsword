@@ -41,15 +41,17 @@ TrumpSword is an intelligent plugin system that tracks political promises and wo
     *   **Framework Preset**: Vite
     *   **Root Directory**: `./` (Leave default)
     *   **Build Command**: `npm run build` (or `tsc -b && vite build`)
-    *   **Output Directory**: `dist`
+    *   `Output Directory`: `dist`
 4.  **Environment Variables**: Add the following variables:
-    *   `VITE_SUPABASE_URL`: Your Supabase Project URL
-    *   `VITE_SUPABASE_ANON_KEY`: Your Supabase Anon Key
-    *   `SUPABASE_URL`: Your Supabase Project URL (for backend)
-    *   `SUPABASE_KEY`: Your Supabase Anon Key (for backend)
-    *   `OPENAI_API_KEY`: Your OpenAI API Key
-    *   `MEEGLE_APP_ID`: (Optional) Your Meegle App ID
-    *   `MEEGLE_APP_SECRET`: (Optional) Your Meegle App Secret
+    *   `VITE_SUPABASE_URL`: Your Supabase Project URL (Frontend)
+    *   `VITE_SUPABASE_ANON_KEY`: Your Supabase Anon Key (Frontend)
+    *   `SUPABASE_URL`: Your Supabase Project URL (Backend)
+    *   `SUPABASE_SERVICE_ROLE_KEY`: **Required** - Your Supabase Service Role Secret (Backend Admin Access)
+    *   `SUPABASE_KEY`: Your Supabase Anon Key (Fallback)
+    *   `OPENAI_API_KEY`: Your DeepSeek/OpenAI API Key
+    *   `OPENAI_BASE_URL`: (Optional) Custom LLM URL (e.g., https://api.deepseek.com/v1)
+    *   `MEEGLE_PLUGIN_ID`: Your Meegle Plugin ID
+    *   `MEEGLE_PLUGIN_SECRET`: Your Meegle Plugin Secret
 5.  Click **Deploy**.
 
 ### Step 4: Verify Deployment
