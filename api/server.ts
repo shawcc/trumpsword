@@ -2,7 +2,7 @@
  * local server entry file, for local development
  */
 import app from './app.js';
-import { startCronJobs } from './cron.js';
+// import { startCronJobs } from './cron.js';
 import { workflowService } from './services/workflow.js';
 
 /**
@@ -16,7 +16,8 @@ const server = app.listen(PORT, async () => {
   // Initialize services
   try {
     await workflowService.ensureTemplates();
-    startCronJobs();
+    // Start background jobs (Not recommended for Vercel Serverless, use Vercel Cron instead)
+    // startCronJobs();
     console.log('Services initialized');
   } catch (error) {
     console.error('Failed to initialize services:', error);
