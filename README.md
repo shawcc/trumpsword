@@ -1,57 +1,84 @@
-# React + TypeScript + Vite
+# TrumpSword - Political Promise Tracker Plugin for Meegle
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+TrumpSword is an intelligent plugin system that tracks political promises and workflows (Legislative, Executive Orders, Appointments) and syncs them as work items in [Meegle](https://www.meegle.com/).
 
-Currently, two official plugins are available:
+## 🚀 Deployment Guide
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Prerequisites
+1.  **GitHub Account**: To host the code.
+2.  **Supabase Account**: For the database (PostgreSQL).
+3.  **Vercel Account**: For hosting the application (Frontend + Backend Serverless).
+4.  **OpenAI API Key**: For intelligent analysis of political texts.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Step 1: Database Setup (Supabase)
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+1.  Create a new project on [Supabase](https://supabase.com/).
+2.  Go to the **SQL Editor** in your Supabase dashboard.
+3.  Copy the content of `migrations/20250211_init.sql` from this repository.
+4.  Run the SQL script to create the necessary tables and security policies.
+5.  Go to **Project Settings -> API** and copy:
+    *   `Project URL`
+    *   `anon` public key
+    *   `service_role` secret (Optional, mostly for backend admin tasks)
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Step 2: GitHub Repository
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1.  Create a new repository on GitHub (e.g., `trumpsword`).
+2.  Push this code to your new repository:
+    ```bash
+    git remote add origin https://github.com/YOUR_USERNAME/trumpsword.git
+    git branch -M main
+    git push -u origin main
+    ```
 
-export default tseslint.config({
-  extends: [
-    // other configs...
-    // Enable lint rules for React
-    reactX.configs['recommended-typescript'],
-    // Enable lint rules for React DOM
-    reactDom.configs.recommended,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+### Step 3: Vercel Deployment
+
+1.  Go to [Vercel Dashboard](https://vercel.com/dashboard) and click **"Add New..." -> "Project"**.
+2.  Import your `trumpsword` GitHub repository.
+3.  **Configure Project**:
+    *   **Framework Preset**: Vite
+    *   **Root Directory**: `./` (Leave default)
+    *   **Build Command**: `npm run build` (or `tsc -b && vite build`)
+    *   **Output Directory**: `dist`
+4.  **Environment Variables**: Add the following variables:
+    *   `VITE_SUPABASE_URL`: Your Supabase Project URL
+    *   `VITE_SUPABASE_ANON_KEY`: Your Supabase Anon Key
+    *   `SUPABASE_URL`: Your Supabase Project URL (for backend)
+    *   `SUPABASE_KEY`: Your Supabase Anon Key (for backend)
+    *   `OPENAI_API_KEY`: Your OpenAI API Key
+    *   `MEEGLE_APP_ID`: (Optional) Your Meegle App ID
+    *   `MEEGLE_APP_SECRET`: (Optional) Your Meegle App Secret
+5.  Click **Deploy**.
+
+### Step 4: Verify Deployment
+
+1.  Once deployed, Vercel will give you a domain (e.g., `trumpsword.vercel.app`).
+2.  Open the URL. You should see the login page.
+3.  Register a new account (or check database for manually created users).
+4.  The backend API will be available at `/api/...`.
+
+---
+
+## 🛠️ Local Development
+
+1.  Clone the repo.
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Create a `.env` file based on the example above.
+4.  Run the development server:
+    ```bash
+    npm run dev
+    ```
+5.  Open `http://localhost:5173`.
+
+## 🏗️ Architecture
+
+*   **Frontend**: React, TailwindCSS, Lucide Icons, Zustand
+*   **Backend**: Node.js (Express), Serverless ready (Vercel)
+*   **Database**: Supabase (PostgreSQL)
+*   **AI**: OpenAI (Text Analysis)
+*   **Integration**: Meegle Open API
