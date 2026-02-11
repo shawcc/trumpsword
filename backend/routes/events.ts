@@ -52,6 +52,21 @@ router.post('/retry', async (req, res) => {
     }
 });
 
+// POST /api/events/reset (Delete All Events)
+router.post('/reset', async (req, res) => {
+    try {
+        console.log('[API] Resetting all events...');
+        const { error } = await supabase.from('events').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        
+        if (error) throw error;
+        
+        res.json({ success: true, message: 'All events have been cleared.' });
+    } catch (error: any) {
+        console.error('[API] Reset failed:', error);
+        res.status(500).json({ error: error.message || 'Reset failed' });
+    }
+});
+
 // POST /api/events/trigger (Manual Trigger)
 router.post('/trigger', async (req, res) => {
     try {

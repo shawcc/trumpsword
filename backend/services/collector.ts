@@ -13,6 +13,8 @@ export const collectorService = {
     };
 
     // 1. Congress
+    /* 
+    // Temporarily disabled due to Congress.gov blocking automated requests (Cloudflare)
     try {
       const billsData = await congressService.fetchRecentBills();
       if (billsData && billsData.bills) {
@@ -29,6 +31,7 @@ export const collectorService = {
       console.error('Congress Collection Error:', e);
       results.errors.push(`Congress Error: ${e.message}`);
     }
+    */
 
     // 2. WhiteHouse
     try {

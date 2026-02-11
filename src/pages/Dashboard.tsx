@@ -9,6 +9,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [triggering, setTriggering] = useState(false);
   const [retrying, setRetrying] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [triggerResult, setTriggerResult] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
 
@@ -24,6 +25,28 @@ export default function Dashboard() {
   useEffect(() => {
       fetchRecentEvents();
   }, []);
+
+  const handleResetData = async () => {
+    if (!confirm('Are you sure you want to clear ALL data? This cannot be undone.')) return;
+    
+    setResetting(true);
+    setTriggerResult(null);
+    try {
+        const res = await api.post('/events/reset', {});
+        setTriggerResult({
+            message: res.message || 'Data cleared successfully',
+            type: 'success'
+        });
+        await fetchRecentEvents();
+    } catch (e: any) {
+        setTriggerResult({
+            message: e.message || 'Reset failed',
+            type: 'error'
+        });
+    } finally {
+        setResetting(false);
+    }
+  };
 
   const handleManualTrigger = async () => {
     setTriggering(true);
@@ -105,6 +128,14 @@ export default function Dashboard() {
                     {triggerResult.message}
                 </span>
             )}
+            <button 
+                onClick={handleResetData}
+                disabled={resetting}
+                className={`flex items-center px-4 py-2 text-sm font-medium text-red-600 bg-red-50 border border-red-200 rounded-md hover:bg-red-100 focus:outline-none disabled:opacity-50 transition-colors`}
+            >
+                <RefreshCw className={`w-4 h-4 mr-2 ${resetting ? 'animate-spin' : ''}`} />
+                {resetting ? 'Resetting...' : 'Reset Data'}
+            </button>
             <button 
                 onClick={handleRetryPending}
                 disabled={retrying}
