@@ -8,6 +8,7 @@ export default function Dashboard() {
   const user = useAuthStore(s => s.user);
   const navigate = useNavigate();
   const [triggering, setTriggering] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [triggerResult, setTriggerResult] = useState<{message: string, type: 'success' | 'error'} | null>(null);
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
 
@@ -54,6 +55,33 @@ export default function Dashboard() {
     }
   };
 
+  const handleRetryPending = async () => {
+    setRetrying(true);
+    setTriggerResult(null);
+    try {
+        const res = await api.post('/events/retry', {});
+        if (res.stats && res.stats.failCount > 0) {
+             setTriggerResult({
+                message: `Retry: ${res.stats.successCount} success, ${res.stats.failCount} failed. Last Error: ${res.stats.errors[0]}`,
+                type: 'error'
+            });
+        } else {
+            setTriggerResult({
+                message: res.message || 'Retry successful',
+                type: 'success'
+            });
+        }
+        await fetchRecentEvents();
+    } catch (e: any) {
+        setTriggerResult({
+            message: e.message || 'Retry failed',
+            type: 'error'
+        });
+    } finally {
+        setRetrying(false);
+    }
+  };
+
   const getSyncStatusIcon = (status: string, error?: string) => {
       if (status === 'success') return <CheckCircle className="w-5 h-5 text-green-500" />;
       if (status === 'failed') return <XCircle className="w-5 h-5 text-red-500" />;
@@ -73,6 +101,14 @@ export default function Dashboard() {
                     {triggerResult.message}
                 </span>
             )}
+            <button 
+                onClick={handleRetryPending}
+                disabled={retrying}
+                className={`flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none disabled:opacity-50 transition-colors`}
+            >
+                <RefreshCw className={`w-4 h-4 mr-2 ${retrying ? 'animate-spin' : ''}`} />
+                {retrying ? 'Retrying...' : 'Retry Pending'}
+            </button>
             <button 
                 onClick={handleManualTrigger}
                 disabled={triggering}

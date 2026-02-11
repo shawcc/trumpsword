@@ -1,8 +1,56 @@
 import { Router } from 'express';
 import { supabase } from '../lib/supabase.js';
 import { collectorService } from '../services/collector.js';
+import { workflowService } from '../services/workflow.js';
 
 const router = Router();
+
+// POST /api/events/retry (Retry Pending Syncs)
+router.post('/retry', async (req, res) => {
+    try {
+        console.log('[API] Manual retry for pending events triggered');
+        
+        // Fetch all events that failed sync or are pending (excluding success)
+        const { data: pendingEvents, error } = await supabase
+            .from('events')
+            .select('*')
+            .neq('meegle_sync_status', 'success')
+            .order('event_date', { ascending: false })
+            .limit(50); // Limit to avoid timeout
+
+        if (error) throw error;
+
+        if (!pendingEvents || pendingEvents.length === 0) {
+            return res.json({ message: 'No pending events to retry', count: 0 });
+        }
+
+        let successCount = 0;
+        let failCount = 0;
+        const errors: string[] = [];
+
+        for (const event of pendingEvents) {
+            try {
+                console.log(`Retrying sync for event ${event.id}...`);
+                await workflowService.startProcess(event);
+                successCount++;
+            } catch (e: any) {
+                console.error(`Retry failed for event ${event.id}:`, e);
+                failCount++;
+                errors.push(`${event.title}: ${e.message}`);
+            }
+        }
+
+        res.json({
+            success: true,
+            message: `Retry completed. Success: ${successCount}, Failed: ${failCount}`,
+            stats: { successCount, failCount, errors }
+        });
+
+    } catch (error: any) {
+        console.error('[API] Retry failed:', error);
+        res.status(500).json({ error: error.message || 'Retry failed' });
+    }
+});
 
 // POST /api/events/trigger (Manual Trigger)
 router.post('/trigger', async (req, res) => {

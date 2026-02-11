@@ -10,7 +10,20 @@ export const congressService = {
   async fetchRecentBills(limit = 20) {
     console.log('[Congress] Fetching recent bills from RSS...');
     try {
-        const feed = await parser.parseURL(CONGRESS_RSS_URL);
+        // Fix: Use fetch with User-Agent to bypass potential blocks
+        const response = await fetch(CONGRESS_RSS_URL, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'application/rss+xml, application/xml, text/xml, */*'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Congress RSS HTTP Error: ${response.status} ${response.statusText}`);
+        }
+
+        const xmlText = await response.text();
+        const feed = await parser.parseString(xmlText);
         
         const bills = feed.items.map(item => {
             // Extract type and number from title if possible, e.g. "H.R. 123 - Title"
