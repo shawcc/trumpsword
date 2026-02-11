@@ -2,11 +2,12 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const MEEGLE_API_BASE = process.env.MEEGLE_API_BASE || 'https://open.feishu.cn/open-apis/meegle/v1';
+const MEEGLE_API_BASE = process.env.MEEGLE_API_BASE || 'https://open.larksuite.com/open-apis/project/v1';
+const AUTH_API_BASE = 'https://open.larksuite.com/open-apis/auth/v3';
 const MEEGLE_APP_ID = process.env.MEEGLE_APP_ID;
 const MEEGLE_APP_SECRET = process.env.MEEGLE_APP_SECRET;
 
-// Token management (simplified for now)
+// Token management
 let accessToken = '';
 let tokenExpiry = 0;
 
@@ -16,17 +17,70 @@ async function getAccessToken() {
     return accessToken;
   }
 
-  // TODO: Implement actual tenant_access_token fetching from Meegle/Lark Open Platform
-  // response = await fetch('https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal', ...)
-  
-  console.log('Fetching new Meegle access token...');
-  accessToken = 'mock_meegle_token_' + now;
-  tokenExpiry = now + 7200 * 1000; // 2 hours
-  
+  if (!MEEGLE_APP_ID || !MEEGLE_APP_SECRET) {
+    console.log('Fetching new Meegle access token (MOCK)...');
+    accessToken = 'mock_meegle_token_' + now;
+    tokenExpiry = now + 7200 * 1000;
+    return accessToken;
+  }
+
+  console.log('Fetching new Meegle tenant access token...');
+  const response = await fetch(`${AUTH_API_BASE}/tenant_access_token/internal`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      app_id: MEEGLE_APP_ID,
+      app_secret: MEEGLE_APP_SECRET
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to get access token: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  if (data.code !== 0) {
+    throw new Error(`Auth Error: ${data.msg}`);
+  }
+
+  accessToken = data.tenant_access_token;
+  tokenExpiry = now + (data.expire - 60) * 1000; // Expire 1 minute early for safety
   return accessToken;
 }
 
 export const meegleService = {
+  /**
+   * Fetch all available work item types in a project
+   */
+  async getWorkItemTypes(projectKey: string) {
+    const token = await getAccessToken();
+    if (!MEEGLE_APP_ID) {
+      // Mock data
+      return [
+        { type_key: 'LEGISLATIVE', name: 'Legislative Process' },
+        { type_key: 'EXECUTIVE', name: 'Executive Order' },
+        { type_key: 'APPOINTMENT', name: 'Appointment' }
+      ];
+    }
+
+    // Lark Project API to list work item types
+    // Note: Actual endpoint might differ, checking documentation...
+    // Usually: GET /projects/:project_key/work_item_types
+    const response = await fetch(`${MEEGLE_API_BASE}/projects/${projectKey}/work_item_types?page_size=50`, {
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    if (!response.ok) {
+       const errorText = await response.text();
+       console.error(`Meegle API Error (getTypes): ${errorText}`);
+       return [];
+    }
+    
+    const data = await response.json();
+    return data.data?.work_item_types || [];
+  },
+
   /**
    * Create a new work item (process instance) in Meegle
    */

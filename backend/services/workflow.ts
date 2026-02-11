@@ -80,9 +80,31 @@ export const workflowService = {
         // Project Key would typically come from configuration
         const projectKey = process.env.MEEGLE_PROJECT_KEY || 'POLITICS_DEMO';
         
+        // Dynamic Mapping: Try to find a matching Work Item Type in the project
+        const availableTypes = await meegleService.getWorkItemTypes(projectKey);
+        
+        // Mapping Logic: 
+        // 1. Try exact match on key (e.g. "LEGISLATIVE")
+        // 2. Try partial match on name (e.g. "Legislative" in "Legislative Process")
+        // 3. Fallback to default key (event.type.toUpperCase())
+        
+        let targetTypeKey = event.type.toUpperCase();
+        
+        const match = availableTypes.find((t: any) => 
+            t.type_key === targetTypeKey || 
+            t.name.toLowerCase().includes(event.type.toLowerCase())
+        );
+
+        if (match) {
+            console.log(`[Workflow] Mapped internal type '${event.type}' to Meegle type '${match.name}' (${match.type_key})`);
+            targetTypeKey = match.type_key;
+        } else {
+            console.warn(`[Workflow] No matching Meegle type found for '${event.type}'. Using default key '${targetTypeKey}'. Ensure this Type Key exists in project '${projectKey}'.`);
+        }
+        
         const meegleItem = await meegleService.createWorkItem(
             projectKey, 
-            event.type.toUpperCase(), // Work Item Type Key
+            targetTypeKey, 
             {
                 title: event.title,
                 // summary: event.raw_data.summary || '', // Fields depend on Meegle configuration
