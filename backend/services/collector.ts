@@ -180,7 +180,7 @@ export const collectorService = {
     }
 
     // 2. Analyze
-    const analysis = await llmService.analyzeEvent(rawData);
+    const analysis = await llmService.analyzeEvent(rawData, source);
 
     // 3. Store
     const { data: event, error } = await supabase

@@ -6,7 +6,7 @@ const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL || 'https://api.openai.com/v
 const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o';
 
 export const llmService = {
-  async analyzeEvent(data: any) {
+  async analyzeEvent(data: any, source?: string) {
     // If no API key, fallback to simple rule-based mock logic
     if (!OPENAI_API_KEY) {
       let type = 'legislative'; // Default
@@ -14,9 +14,9 @@ export const llmService = {
       // Strict rule-based classification based on title and metadata
       const title = (data.title || '').toLowerCase();
       const rawType = (data.type || '').toString().toLowerCase(); // e.g. 'hr', 's' from Congress API
-      const source = (data.source || '').toLowerCase();
+      const safeSource = (source || data.source || '').toLowerCase();
 
-      if (source === 'truth_social' || source === 'x' || rawType === 'social_post') {
+      if (safeSource === 'truth_social' || safeSource === 'x' || rawType === 'social_post') {
           type = 'social_post';
       } else if (rawType === 'hr' || rawType === 's' || rawType === 'legislative' || title.includes('h.r.') || title.includes('s.')) {
           type = 'legislative';
