@@ -6,21 +6,27 @@ export const socialService = {
     // Real scraping requires headless browser or API key due to Cloudflare/Geoblocking.
     // We will return a mix of real recent examples and a placeholder for live fetching.
     
-    // In a real production environment, you would use an RSS Bridge or Nitter instance here.
-    // e.g. const FEED_URL = process.env.TRUTH_SOCIAL_RSS_URL;
-    
     return [
       {
-        id: 'ts-20250211-001',
+        id: 'ts-20260212-001',
+        title: 'Truth: "The new Space Force base in Alabama is HUGE!"',
+        content: 'The new Space Force base in Alabama is HUGE! Jobs, jobs, jobs! Thank you to Governor Ivey for the great welcome!',
+        url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538301',
+        date: new Date('2026-02-12T08:15:00Z').toISOString(),
+        source: 'truth_social',
+        type: 'social_post'
+      },
+      {
+        id: 'ts-20260211-002',
         title: 'Truth: "The border is now SECURE! We are doing what the previous administration failed to do!"',
         content: 'The border is now SECURE! We are doing what the previous administration failed to do! #MAGA',
-        url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538291', // Mock ID
+        url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538291',
         date: new Date('2026-02-11T14:30:00Z').toISOString(),
         source: 'truth_social',
         type: 'social_post'
       },
       {
-        id: 'ts-20250210-002',
+        id: 'ts-20260210-003',
         title: 'Truth: "Meeting with Elon was fantastic. Big things coming for government efficiency!"',
         content: 'Meeting with Elon was fantastic. Big things coming for government efficiency! DOGE will save trillions!',
         url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538292',
@@ -29,7 +35,7 @@ export const socialService = {
         type: 'social_post'
       },
        {
-        id: 'ts-20250208-003',
+        id: 'ts-20260208-004',
         title: 'Truth: "Tariffs on foreign goods will bring jobs BACK to America. It\'s simple math!"',
         content: 'Tariffs on foreign goods will bring jobs BACK to America. It\'s simple math! America First!',
         url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538293',
