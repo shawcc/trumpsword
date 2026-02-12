@@ -119,6 +119,32 @@ export const collectorService = {
         console.error('Congress Historical Error:', e);
         results.errors.push(`Congress Error: ${e.message}`);
     }
+
+    // 3. Social Media Historical
+    try {
+        const truthPosts = await socialService.fetchHistoricalTruthSocial(sinceDate);
+        for (const post of truthPosts) {
+             try {
+                await this.processEvent(post, 'truth_social');
+                results.added++;
+            } catch (e: any) {
+                console.error('Error processing historical Truth Social:', e);
+            }
+        }
+        
+        const xPosts = await socialService.fetchHistoricalXPosts(sinceDate);
+        for (const post of xPosts) {
+             try {
+                await this.processEvent(post, 'x');
+                results.added++;
+            } catch (e: any) {
+                console.error('Error processing historical X:', e);
+            }
+        }
+    } catch (e: any) {
+         console.error('Social Historical Error:', e);
+         results.errors.push(`Social Error: ${e.message}`);
+    }
     
     return results;
   },
