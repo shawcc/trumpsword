@@ -88,6 +88,43 @@ export const socialService = {
             date: new Date('2025-01-25T14:15:00Z').toISOString(),
             source: 'truth_social',
             type: 'social_post'
+          },
+          // ... More simulation for Feb - Dec 2025 to make the timeline look real
+          {
+            id: 'ts-20250315-004',
+            title: 'Truth: "Inflation is coming DOWN! Thank you President Trump!"',
+            content: 'Inflation is coming DOWN! Thank you President Trump! The fake news won\'t report it, but the people know!',
+            url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538004',
+            date: new Date('2025-03-15T09:00:00Z').toISOString(),
+            source: 'truth_social',
+            type: 'social_post'
+          },
+          {
+            id: 'ts-20250601-005',
+            title: 'Truth: "Great meeting with world leaders. America is RESPECTED again!"',
+            content: 'Great meeting with world leaders. America is RESPECTED again! Peace through strength.',
+            url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538005',
+            date: new Date('2025-06-01T11:20:00Z').toISOString(),
+            source: 'truth_social',
+            type: 'social_post'
+          },
+          {
+            id: 'ts-20250910-006',
+            title: 'Truth: "The new budget is a huge win for our Military and Vets!"',
+            content: 'The new budget is a huge win for our Military and Vets! Rebuilding our depleted forces. #MAGA',
+            url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538006',
+            date: new Date('2025-09-10T15:45:00Z').toISOString(),
+            source: 'truth_social',
+            type: 'social_post'
+          },
+          {
+            id: 'ts-20251225-007',
+            title: 'Truth: "Merry Christmas to all, even the haters and losers!"',
+            content: 'Merry Christmas to all, even the haters and losers! Our country is doing great. Enjoy!',
+            url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538007',
+            date: new Date('2025-12-25T08:00:00Z').toISOString(),
+            source: 'truth_social',
+            type: 'social_post'
           }
       ];
 

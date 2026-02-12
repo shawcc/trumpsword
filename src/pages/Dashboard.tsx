@@ -16,7 +16,7 @@ export default function Dashboard() {
 
   const fetchRecentEvents = async () => {
       try {
-          const res = await api.get('/events?limit=10');
+          const res = await api.get('/events?limit=50'); // Increased limit to show historical data
           setRecentEvents(res.data || []);
       } catch (e) {
           console.error('Failed to fetch events:', e);
