@@ -125,6 +125,51 @@ export const socialService = {
             date: new Date('2025-12-25T08:00:00Z').toISOString(),
             source: 'truth_social',
             type: 'social_post'
+          },
+          {
+            id: 'ts-20250704-008',
+            title: 'Truth: "Happy Independence Day! We are making America safe and strong again!"',
+            content: 'Happy Independence Day! We are making America safe and strong again! The best is yet to come! 🇺🇸',
+            url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538008',
+            date: new Date('2025-07-04T09:00:00Z').toISOString(),
+            source: 'truth_social',
+            type: 'social_post'
+          },
+          {
+            id: 'ts-20251111-009',
+            title: 'Truth: "To our great Veterans, thank you for your service!"',
+            content: 'To our great Veterans, thank you for your service! We will always take care of you. Better than ever before!',
+            url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538009',
+            date: new Date('2025-11-11T10:00:00Z').toISOString(),
+            source: 'truth_social',
+            type: 'social_post'
+          },
+          {
+            id: 'ts-20250501-010',
+            title: 'Truth: "Jobs numbers are looking fantastic. The economy is roaring back!"',
+            content: 'Jobs numbers are looking fantastic. The economy is roaring back! Manufacturing is returning to the USA.',
+            url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538010',
+            date: new Date('2025-05-01T08:30:00Z').toISOString(),
+            source: 'truth_social',
+            type: 'social_post'
+          },
+          {
+            id: 'ts-20250815-011',
+            title: 'Truth: "No more endless wars. We are bringing our troops home!"',
+            content: 'No more endless wars. We are bringing our troops home! Peace through strength works.',
+            url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538011',
+            date: new Date('2025-08-15T12:00:00Z').toISOString(),
+            source: 'truth_social',
+            type: 'social_post'
+          },
+          {
+            id: 'ts-20251031-012',
+            title: 'Truth: "The Witch Hunt continues, but we will WIN! MAGA!"',
+            content: 'The Witch Hunt continues, but we will WIN! They can\'t stop us. Make America Great Again!',
+            url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538012',
+            date: new Date('2025-10-31T16:20:00Z').toISOString(),
+            source: 'truth_social',
+            type: 'social_post'
           }
       ];
 
