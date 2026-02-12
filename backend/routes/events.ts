@@ -56,11 +56,29 @@ router.post('/retry', async (req, res) => {
 router.post('/reset', async (req, res) => {
     try {
         console.log('[API] Resetting all events...');
-        const { error } = await supabase.from('events').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         
-        if (error) throw error;
+        // 1. Delete status_history (FK to processes)
+        const { error: historyError } = await supabase.from('status_history').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (historyError) {
+             console.error('[API] Reset: Failed to clear status_history', historyError);
+             throw historyError;
+        }
+
+        // 2. Delete processes (FK to events)
+        const { error: processError } = await supabase.from('processes').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (processError) {
+             console.error('[API] Reset: Failed to clear processes', processError);
+             throw processError;
+        }
+
+        // 3. Delete events
+        const { error: eventError } = await supabase.from('events').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (eventError) {
+             console.error('[API] Reset: Failed to clear events', eventError);
+             throw eventError;
+        }
         
-        res.json({ success: true, message: 'All events have been cleared.' });
+        res.json({ success: true, message: 'All data (history, processes, events) have been cleared.' });
     } catch (error: any) {
         console.error('[API] Reset failed:', error);
         res.status(500).json({ error: error.message || 'Reset failed' });
