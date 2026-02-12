@@ -1,30 +1,28 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../lib/api';
-import { CheckCircle, Clock } from 'lucide-react';
+import { CheckCircle, Clock, ArrowLeft, ExternalLink, MessageSquare, FileText, Gavel, UserCheck } from 'lucide-react';
 
 export default function Processes() {
   const { type } = useParams();
-  const [processes, setProcesses] = useState<any[]>([]);
+  const navigate = useNavigate();
+  const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadProcesses();
+    loadEvents();
   }, [type]);
 
-  const loadProcesses = async () => {
+  const loadEvents = async () => {
     setLoading(true);
     try {
-      // In real app, filter by template type derived from URL param 'type'
-      // But our API /processes doesn't filter by template type yet, so we fetch all or update API
-      const res = await api.get('/processes');
-      // Client side filter for demo, as API returns all
-      // Assuming workflow_templates.type matches our URL param (legislative, executive, appointment)
-      const filtered = type 
-        ? res.data.filter((p: any) => p.workflow_templates?.type === type)
-        : res.data;
-        
-      setProcesses(filtered);
+      // Map URL param to database 'type'
+      let dbType = type;
+      if (type === 'social') dbType = 'social_post';
+      
+      // Fetch events with specific type, limit 100 for a good list
+      const res = await api.get(`/events?type=${dbType}&limit=100`);
+      setEvents(res.data || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -34,52 +32,122 @@ export default function Processes() {
 
   const getStatusColor = (status: string) => {
     switch(status) {
-        case 'active': return 'bg-blue-100 text-blue-800';
-        case 'completed': return 'bg-green-100 text-green-800';
-        case 'suspended': return 'bg-red-100 text-red-800';
-        default: return 'bg-gray-100 text-gray-800';
+        case 'success': return 'bg-green-100 text-green-800';
+        case 'failed': return 'bg-red-100 text-red-800';
+        default: return 'bg-yellow-100 text-yellow-800';
     }
+  };
+
+  const getIcon = () => {
+      switch(type) {
+          case 'legislative': return <Gavel className="w-8 h-8 text-blue-600" />;
+          case 'executive': return <FileText className="w-8 h-8 text-green-600" />;
+          case 'appointment': return <UserCheck className="w-8 h-8 text-purple-600" />;
+          case 'social': return <MessageSquare className="w-8 h-8 text-pink-600" />;
+          default: return <Clock className="w-8 h-8 text-gray-600" />;
+      }
+  };
+
+  const getTitle = () => {
+      switch(type) {
+          case 'legislative': return 'Legislative Actions';
+          case 'executive': return 'Executive Orders & Actions';
+          case 'appointment': return 'Nominations & Appointments';
+          case 'social': return 'Social Media Updates';
+          default: return 'All Events';
+      }
   };
 
   return (
     <div className="p-8 max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-6 capitalize">{type || 'All'} Processes</h1>
+      <button 
+        onClick={() => navigate('/dashboard')}
+        className="mb-6 flex items-center text-gray-500 hover:text-gray-700 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
+      </button>
+
+      <div className="flex items-center mb-8">
+          <div className={`p-3 rounded-lg mr-4 ${
+              type === 'legislative' ? 'bg-blue-100' :
+              type === 'executive' ? 'bg-green-100' :
+              type === 'appointment' ? 'bg-purple-100' :
+              type === 'social' ? 'bg-pink-100' : 'bg-gray-100'
+          }`}>
+              {getIcon()}
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{getTitle()}</h1>
+            <p className="text-gray-500 mt-1">
+                {events.length} items found
+            </p>
+          </div>
+      </div>
       
       {loading ? (
-        <div>Loading...</div>
+        <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
       ) : (
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
+        <div className="bg-white shadow overflow-hidden sm:rounded-md rounded-lg border border-gray-200">
           <ul className="divide-y divide-gray-200">
-            {processes.map((process) => (
-              <li key={process.id}>
-                <div className="px-4 py-4 sm:px-6 hover:bg-gray-50 transition cursor-pointer">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-blue-600 truncate">{process.events?.title}</p>
-                    <div className="ml-2 flex-shrink-0 flex">
-                      <p className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(process.status)}`}>
-                        {process.status}
-                      </p>
+            {events.map((event) => (
+              <li key={event.id} className="hover:bg-gray-50 transition duration-150 ease-in-out">
+                <div className="px-6 py-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${
+                            event.source === 'whitehouse' ? 'bg-blue-100 text-blue-800' :
+                            event.source === 'congress' ? 'bg-gray-100 text-gray-800' :
+                            event.source === 'truth_social' ? 'bg-purple-100 text-purple-800' :
+                            event.source === 'x' ? 'bg-black text-white' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                            {event.source}
+                        </span>
+                        <span className="ml-2 text-sm text-gray-500">
+                            {new Date(event.event_date).toLocaleString()}
+                        </span>
                     </div>
+                    {event.raw_data?.url && (
+                        <a 
+                            href={event.raw_data.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-gray-400 hover:text-blue-600 transition-colors"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                        </a>
+                    )}
                   </div>
-                  <div className="mt-2 sm:flex sm:justify-between">
-                    <div className="sm:flex">
-                      <p className="flex items-center text-sm text-gray-500">
-                        <CheckCircle className="flex-shrink-0 mr-1.5 h-4 w-4 text-green-400" />
-                        Current Node: {process.current_node}
+                  
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    {event.title}
+                  </h3>
+                  
+                  {event.raw_data?.content && (
+                      <p className="text-sm text-gray-600 line-clamp-3 mb-3">
+                          {event.raw_data.content.replace(/<[^>]*>?/gm, '')}
                       </p>
-                    </div>
-                    <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                      <Clock className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                      <p>
-                        Started {new Date(process.started_at).toLocaleDateString()}
-                      </p>
-                    </div>
+                  )}
+                  
+                  {/* Debug/Internal Info */}
+                  <div className="flex items-center text-xs text-gray-400 mt-2">
+                      <span className="mr-4">ID: {event.external_id || event.id}</span>
+                      <span>Sync: {event.meegle_sync_status}</span>
                   </div>
                 </div>
               </li>
             ))}
-            {processes.length === 0 && (
-                <div className="p-4 text-center text-gray-500">No processes found for this category.</div>
+            {events.length === 0 && (
+                <div className="p-12 text-center">
+                    <p className="text-gray-500 text-lg">No events found for this category.</p>
+                    <button 
+                        onClick={() => navigate('/dashboard')}
+                        className="mt-4 text-blue-600 hover:underline"
+                    >
+                        Go back and try syncing more data
+                    </button>
+                </div>
             )}
           </ul>
         </div>
