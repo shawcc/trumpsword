@@ -64,9 +64,10 @@ export const meegleService = {
     if (!PLUGIN_ID) {
       // Mock data
       return [
-        { type_key: 'LEGISLATIVE', name: 'Legislative Process' },
-        { type_key: 'EXECUTIVE', name: 'Executive Order' },
-        { type_key: 'APPOINTMENT', name: 'Appointment' }
+        { type_key: 'LEGISLATIVE', name: 'Bill' },
+        { type_key: 'EXECUTIVE', name: 'Executive Orders' },
+        { type_key: 'APPOINTMENT', name: 'Oops' },
+        { type_key: 'SOCIAL', name: 'Social Media' }
       ];
     }
 

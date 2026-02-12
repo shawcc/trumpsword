@@ -22,6 +22,12 @@ export const workflowService = {
         type: 'appointment',
         node_structure: { nodes: ['Nomination', 'Committee Hearing', 'Committee Vote', 'Senate Floor Vote', 'Confirmed'] },
         transition_rules: {}
+      },
+      {
+        name: 'Social Media Response',
+        type: 'social_post',
+        node_structure: { nodes: ['Monitor', 'Fact Check', 'Public Response', 'Policy Adjustment'] },
+        transition_rules: {}
       }
     ];
 
@@ -108,7 +114,8 @@ export const workflowService = {
         const typeMappingRules = [
             { internal: 'legislative', targetName: 'Bill' },
             { internal: 'executive', targetName: 'Executive Orders' },
-            { internal: 'appointment', targetName: 'Oops' }
+            { internal: 'appointment', targetName: 'Oops' },
+            { internal: 'social_post', targetName: 'Social Media' }
         ];
 
         let match: any = null;

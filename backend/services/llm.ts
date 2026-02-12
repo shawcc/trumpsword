@@ -14,8 +14,11 @@ export const llmService = {
       // Strict rule-based classification based on title and metadata
       const title = (data.title || '').toLowerCase();
       const rawType = (data.type || '').toString().toLowerCase(); // e.g. 'hr', 's' from Congress API
+      const source = (data.source || '').toLowerCase();
 
-      if (rawType === 'hr' || rawType === 's' || rawType === 'legislative' || title.includes('h.r.') || title.includes('s.')) {
+      if (source === 'truth_social' || source === 'x' || rawType === 'social_post') {
+          type = 'social_post';
+      } else if (rawType === 'hr' || rawType === 's' || rawType === 'legislative' || title.includes('h.r.') || title.includes('s.')) {
           type = 'legislative';
       } else if (title.includes('executive order') || title.includes('proclamation') || title.includes('memorandum')) {
           type = 'executive';
@@ -52,10 +55,11 @@ export const llmService = {
           messages: [
             {
               role: 'system',
-              content: `You are a political analyst. Analyze the following text and categorize it into one of three types: 
+              content: `You are a political analyst. Analyze the following text and categorize it into one of four types: 
               1. 'legislative' (Bills, Laws)
               2. 'executive' (Executive Orders, Memorandums)
               3. 'appointment' (Nominations, Personnel)
+              4. 'social_post' (Social Media Posts, Tweets, Truths)
               
               Also provide a brief summary and extract key entities.
               Return JSON only: { "type": "...", "confidence": 0.0-1.0, "summary": "...", "extracted_entities": [...] }`
