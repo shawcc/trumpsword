@@ -170,6 +170,51 @@ export const socialService = {
             date: new Date('2025-10-31T16:20:00Z').toISOString(),
             source: 'truth_social',
             type: 'social_post'
+          },
+          {
+             id: 'ts-20250128-013',
+             title: 'Truth: "The Border is CLOSED. Illegal entries down 90% in one week!"',
+             content: 'The Border is CLOSED. Illegal entries down 90% in one week! The Fake News won\'t report it. We are saving our country!',
+             url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538013',
+             date: new Date('2025-01-28T07:45:00Z').toISOString(),
+             source: 'truth_social',
+             type: 'social_post'
+          },
+          {
+             id: 'ts-20250215-014',
+             title: 'Truth: "Just spoke with the new AG. Justice is coming!"',
+             content: 'Just spoke with the new AG. Justice is coming! The corrupt deep state actors will be held accountable. CLEAN HOUSE!',
+             url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538014',
+             date: new Date('2025-02-15T14:30:00Z').toISOString(),
+             source: 'truth_social',
+             type: 'social_post'
+          },
+          {
+             id: 'ts-20250405-015',
+             title: 'Truth: "Gas prices are dropping fast. You\'re welcome America!"',
+             content: 'Gas prices are dropping fast. You\'re welcome America! Drill Baby Drill is working big league.',
+             url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538015',
+             date: new Date('2025-04-05T09:15:00Z').toISOString(),
+             source: 'truth_social',
+             type: 'social_post'
+          },
+          {
+             id: 'ts-20250620-016',
+             title: 'Truth: "Rally in Florida tonight! See you there!"',
+             content: 'Rally in Florida tonight! See you there! It will be YUGE. We are leading in every poll, by a lot!',
+             url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538016',
+             date: new Date('2025-06-20T16:00:00Z').toISOString(),
+             source: 'truth_social',
+             type: 'social_post'
+          },
+          {
+             id: 'ts-20250922-017',
+             title: 'Truth: "China respects us again. Trade deal talks moving well."',
+             content: 'China respects us again. Trade deal talks moving well. They know not to mess with the USA anymore!',
+             url: 'https://truthsocial.com/@realDonaldTrump/posts/11191538017',
+             date: new Date('2025-09-22T08:50:00Z').toISOString(),
+             source: 'truth_social',
+             type: 'social_post'
           }
       ];
 
