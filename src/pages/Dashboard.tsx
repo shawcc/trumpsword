@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '../store/auth';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Gavel, UserCheck, Activity, AlertCircle, RefreshCw, CheckCircle, XCircle, Clock, Calendar } from 'lucide-react';
+import { FileText, Gavel, UserCheck, Activity, AlertCircle, RefreshCw, CheckCircle, XCircle, Clock, Calendar, MessageSquare } from 'lucide-react';
 import { api } from '../lib/api';
 
 export default function Dashboard() {
@@ -138,6 +138,21 @@ export default function Dashboard() {
       return <Clock className="w-5 h-5 text-yellow-500" />;
   };
 
+  const getSourceBadge = (source: string) => {
+      switch (source) {
+          case 'whitehouse':
+              return <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">WhiteHouse</span>;
+          case 'congress':
+              return <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Congress</span>;
+          case 'truth_social':
+              return <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">Truth Social</span>;
+          case 'x':
+              return <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-black text-white">X</span>;
+          default:
+              return <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">{source}</span>;
+      }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -190,7 +205,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         {/* ... Cards ... */}
         <div 
             className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" 
@@ -229,6 +244,19 @@ export default function Dashboard() {
             </div>
           </div>
           <p className="text-gray-500 text-sm">Track nominations and confirmation hearings.</p>
+        </div>
+
+        <div 
+            className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer" 
+            onClick={() => navigate('/processes/social')}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-700">Social Media</h2>
+            <div className="bg-pink-100 p-2 rounded-lg">
+                <MessageSquare className="w-6 h-6 text-pink-600" />
+            </div>
+          </div>
+          <p className="text-gray-500 text-sm">Monitor Truth Social & X posts.</p>
         </div>
       </div>
 
@@ -269,9 +297,7 @@ export default function Dashboard() {
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${event.source === 'whitehouse' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
-                                        {event.source}
-                                    </span>
+                                    {getSourceBadge(event.source)}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">{event.type}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

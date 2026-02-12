@@ -3,6 +3,7 @@ import { whiteHouseService } from './whitehouse.js';
 import { llmService } from './llm.js';
 import { supabase } from '../lib/supabase.js';
 import { workflowService } from './workflow.js';
+import { socialService } from './social.js';
 
 export const collectorService = {
   async collectAll() {
@@ -48,6 +49,32 @@ export const collectorService = {
     } catch (e: any) {
       console.error('WhiteHouse Collection Error:', e);
       results.errors.push(`WhiteHouse Error: ${e.message}`);
+    }
+    
+    // 3. Social Media (Truth Social & X)
+    try {
+        const truths = await socialService.fetchTruthSocial();
+        for (const post of truths) {
+             try {
+                await this.processEvent(post, 'truth_social');
+                results.added++;
+            } catch (e: any) {
+                console.error('Error processing Truth Social post:', e);
+            }
+        }
+        
+        const tweets = await socialService.fetchXPosts();
+        for (const post of tweets) {
+             try {
+                await this.processEvent(post, 'x');
+                results.added++;
+            } catch (e: any) {
+                console.error('Error processing X post:', e);
+            }
+        }
+    } catch (e: any) {
+        console.error('Social Media Collection Error:', e);
+        results.errors.push(`Social Error: ${e.message}`);
     }
     
     console.log('Collection job finished.', results);
