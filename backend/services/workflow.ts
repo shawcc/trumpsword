@@ -49,10 +49,32 @@ export const workflowService = {
       .single();
 
     if (!template) {
-      console.warn(`No template found for type: ${event.type}`);
-      return;
+      console.warn(`[Workflow] No template found for type: ${event.type}. Attempting to re-initialize templates...`);
+      await this.ensureTemplates();
+      
+      // Retry fetch
+      const { data: retryTemplate } = await supabase
+          .from('workflow_templates')
+          .select('*')
+          .eq('type', event.type)
+          .single();
+          
+      if (!retryTemplate) {
+         console.error(`[Workflow] CRITICAL: Template still missing for ${event.type} after initialization.`);
+         return;
+      }
+      // Continue with retried template...
+      // But for cleaner code, let's just use a recursive call or direct assignment if we were refactoring.
+      // Since we are inside a function, let's just throw or return to avoid complex nesting.
+      // Actually, let's just proceed with retryTemplate as 'template' variable is const, so we need to handle it.
+      // Re-assigning via a new variable is safest.
+      return this.startProcessWithTemplate(event, retryTemplate);
     }
+    
+    return this.startProcessWithTemplate(event, template);
+  },
 
+  async startProcessWithTemplate(event: any, template: any) {
     // 2. Determine initial node
     const initialNode = template.node_structure.nodes[0];
 

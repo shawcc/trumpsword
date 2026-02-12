@@ -28,6 +28,8 @@ async function getAccessToken() {
     tokenExpiry = now + 7200 * 1000;
     return accessToken;
   }
+  
+  console.log(`[Meegle Debug] Auth using Plugin ID: ${PLUGIN_ID?.substring(0, 5)}...`);
 
   console.log('Fetching new Meegle tenant access token (Plugin Auth)...');
   // Note: Meegle Plugins use the same auth endpoint as Lark Apps for tenant_access_token
@@ -126,6 +128,9 @@ export const meegleService = {
    */
   async createWorkItem(projectKey: string, workItemType: string, fields: any) {
     const token = await getAccessToken();
+    console.log(`[Meegle Debug] Creating Item - Project: ${projectKey}, Type: ${workItemType}`);
+    console.log(`[Meegle Debug] Fields Payload:`, JSON.stringify(fields, null, 2));
+
     // Mocking the call if no real API credentials
     if (!PLUGIN_ID) {
       console.log(`[Mock Meegle] Create Work Item in ${projectKey}, type: ${workItemType}`, fields);
@@ -166,6 +171,8 @@ export const meegleService = {
     }
     
     const data = await response.json();
+    console.log(`[Meegle Debug] Create Success Response:`, JSON.stringify(data, null, 2));
+
     // Check internal code if successful HTTP status but business error
     if (data.code && data.code !== 0) {
         console.error(`[Meegle API] Business Error: ${data.msg}`);
