@@ -5,14 +5,21 @@ dotenv.config();
 
 const getMeegleConfig = () => {
   const env = (typeof process !== 'undefined' && process.env) || {};
+  const apiBase = env.MEEGLE_API_BASE || 'https://open.larksuite.com/open-apis/project/v1';
+  
+  // Auto-detect Feishu vs Lark based on API Base
+  const isFeishu = apiBase.includes('feishu.cn');
+  const defaultAuthBase = isFeishu 
+    ? 'https://open.feishu.cn/open-apis/auth/v3' 
+    : 'https://open.larksuite.com/open-apis/auth/v3';
+
   return {
-    API_BASE: env.MEEGLE_API_BASE || 'https://open.larksuite.com/open-apis/project/v1',
-    PLUGIN_ID: env.MEEGLE_PLUGIN_ID || env.MEEGLE_APP_ID,
-    PLUGIN_SECRET: env.MEEGLE_PLUGIN_SECRET || env.MEEGLE_APP_SECRET
+    API_BASE: apiBase,
+    AUTH_BASE: env.MEEGLE_AUTH_API_BASE || defaultAuthBase,
+    PLUGIN_ID: (env.MEEGLE_PLUGIN_ID || env.MEEGLE_APP_ID || '').trim(),
+    PLUGIN_SECRET: (env.MEEGLE_PLUGIN_SECRET || env.MEEGLE_APP_SECRET || '').trim()
   };
 };
-
-const AUTH_API_BASE = 'https://open.larksuite.com/open-apis/auth/v3';
 
 // Token management
 let accessToken = '';
@@ -24,7 +31,7 @@ async function getAccessToken() {
     return accessToken;
   }
 
-  const { PLUGIN_ID, PLUGIN_SECRET } = getMeegleConfig();
+  const { PLUGIN_ID, PLUGIN_SECRET, AUTH_BASE } = getMeegleConfig();
 
   if (!PLUGIN_ID || !PLUGIN_SECRET) {
     console.error('CRITICAL: Missing MEEGLE_PLUGIN_ID or MEEGLE_PLUGIN_SECRET.');
@@ -37,11 +44,12 @@ async function getAccessToken() {
   }
   
   console.log(`[Meegle Debug] Auth using Plugin ID: ${PLUGIN_ID?.substring(0, 5)}...`);
+  console.log(`[Meegle Debug] Auth Endpoint: ${AUTH_BASE}`);
 
   console.log('Fetching new Meegle tenant access token (Plugin Auth)...');
   // Note: Meegle Plugins use the same auth endpoint as Lark Apps for tenant_access_token
   // using app_id = plugin_id and app_secret = plugin_secret.
-  const response = await fetch(`${AUTH_API_BASE}/tenant_access_token/internal`, {
+  const response = await fetch(`${AUTH_BASE}/tenant_access_token/internal`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
