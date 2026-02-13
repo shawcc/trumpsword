@@ -307,7 +307,7 @@ export default function Dashboard() {
                                     <div className="flex items-center">
                                         {getSyncStatusIcon(event.meegle_sync_status, event.meegle_sync_error)}
                                         {event.meegle_sync_status === 'failed' && (
-                                            <span className="ml-2 text-xs text-red-600 truncate max-w-[150px]" title={event.meegle_sync_error}>
+                                            <span className="ml-2 text-xs text-red-600" title={event.meegle_sync_error}>
                                                 {event.meegle_sync_error}
                                             </span>
                                         )}
