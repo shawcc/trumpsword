@@ -2,12 +2,16 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const MEEGLE_API_BASE = process.env.MEEGLE_API_BASE || 'https://open.larksuite.com/open-apis/project/v1';
+const getMeegleConfig = () => {
+  const env = (typeof process !== 'undefined' && process.env) || {};
+  return {
+    API_BASE: env.MEEGLE_API_BASE || 'https://open.larksuite.com/open-apis/project/v1',
+    PLUGIN_ID: env.MEEGLE_PLUGIN_ID || env.MEEGLE_APP_ID,
+    PLUGIN_SECRET: env.MEEGLE_PLUGIN_SECRET || env.MEEGLE_APP_SECRET
+  };
+};
+
 const AUTH_API_BASE = 'https://open.larksuite.com/open-apis/auth/v3';
-// Support both standard App ID (Lark App) and Plugin ID (Meegle Plugin)
-// In Meegle Plugin context: MEEGLE_PLUGIN_ID & MEEGLE_PLUGIN_SECRET are used.
-const PLUGIN_ID = process.env.MEEGLE_PLUGIN_ID || process.env.MEEGLE_APP_ID;
-const PLUGIN_SECRET = process.env.MEEGLE_PLUGIN_SECRET || process.env.MEEGLE_APP_SECRET;
 
 // Token management
 let accessToken = '';
@@ -18,6 +22,8 @@ async function getAccessToken() {
   if (accessToken && now < tokenExpiry) {
     return accessToken;
   }
+
+  const { PLUGIN_ID, PLUGIN_SECRET } = getMeegleConfig();
 
   if (!PLUGIN_ID || !PLUGIN_SECRET) {
     console.error('CRITICAL: Missing MEEGLE_PLUGIN_ID or MEEGLE_PLUGIN_SECRET.');
@@ -63,6 +69,8 @@ export const meegleService = {
    */
   async getWorkItemTypes(projectKey: string) {
     const token = await getAccessToken();
+    const { PLUGIN_ID, API_BASE } = getMeegleConfig();
+    
     if (!PLUGIN_ID) {
       // Mock data
       return [
@@ -76,7 +84,7 @@ export const meegleService = {
     // Lark Project API to list work item types
     // Note: Actual endpoint might differ, checking documentation...
     // Usually: GET /projects/:project_key/work_item_types
-    const response = await fetch(`${MEEGLE_API_BASE}/projects/${projectKey}/work_item_types?page_size=50`, {
+    const response = await fetch(`${API_BASE}/projects/${projectKey}/work_item_types?page_size=50`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -96,6 +104,8 @@ export const meegleService = {
    */
   async getWorkItemTypeFields(projectKey: string, workItemTypeKey: string) {
     const token = await getAccessToken();
+    const { PLUGIN_ID, API_BASE } = getMeegleConfig();
+
     if (!PLUGIN_ID) {
       // Mock fields
       return [
@@ -108,7 +118,7 @@ export const meegleService = {
     }
 
     // Usually: GET /projects/:project_key/work_item_types/:type_key/fields
-    const response = await fetch(`${MEEGLE_API_BASE}/projects/${projectKey}/work_item_types/${workItemTypeKey}/fields`, {
+    const response = await fetch(`${API_BASE}/projects/${projectKey}/work_item_types/${workItemTypeKey}/fields`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -128,6 +138,8 @@ export const meegleService = {
    */
   async createWorkItem(projectKey: string, workItemType: string, fields: any) {
     const token = await getAccessToken();
+    const { PLUGIN_ID, API_BASE } = getMeegleConfig();
+
     console.log(`[Meegle Debug] Creating Item - Project: ${projectKey}, Type: ${workItemType}`);
     console.log(`[Meegle Debug] Fields Payload:`, JSON.stringify(fields, null, 2));
 
@@ -146,7 +158,7 @@ export const meegleService = {
       };
     }
 
-    const response = await fetch(`${MEEGLE_API_BASE}/projects/${projectKey}/work_items`, {
+    const response = await fetch(`${API_BASE}/projects/${projectKey}/work_items`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -163,7 +175,7 @@ export const meegleService = {
       // Detailed logging for debugging sync issues
       console.error(`[Meegle API] Create Work Item Failed.`);
       console.error(`Status: ${response.status} ${response.statusText}`);
-      console.error(`Endpoint: ${MEEGLE_API_BASE}/projects/${projectKey}/work_items`);
+      console.error(`Endpoint: ${API_BASE}/projects/${projectKey}/work_items`);
       console.error(`Type Key: ${workItemType}`);
       console.error(`Payload:`, JSON.stringify(fields, null, 2));
       console.error(`Error Body: ${errorText}`);
@@ -188,12 +200,14 @@ export const meegleService = {
    */
   async updateWorkItem(workItemId: string, fields: any) {
     const token = await getAccessToken();
+    const { PLUGIN_ID, API_BASE } = getMeegleConfig();
+
      if (!PLUGIN_ID) {
       console.log(`[Mock Meegle] Update Work Item ${workItemId}`, fields);
       return { data: { work_item: { id: workItemId, fields } } };
     }
 
-    const response = await fetch(`${MEEGLE_API_BASE}/work_items/${workItemId}`, {
+    const response = await fetch(`${API_BASE}/work_items/${workItemId}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -214,12 +228,14 @@ export const meegleService = {
    */
   async transitionState(workItemId: string, transitionId: string) {
      const token = await getAccessToken();
+     const { PLUGIN_ID, API_BASE } = getMeegleConfig();
+
       if (!PLUGIN_ID) {
       console.log(`[Mock Meegle] Transition Work Item ${workItemId} via ${transitionId}`);
       return { data: { work_item: { id: workItemId, transition_id: transitionId } } };
     }
 
-    const response = await fetch(`${MEEGLE_API_BASE}/work_items/${workItemId}/transitions`, {
+    const response = await fetch(`${API_BASE}/work_items/${workItemId}/transitions`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
