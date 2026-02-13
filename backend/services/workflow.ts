@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase.js';
 import { meegleService } from './meegle.js';
+import process from 'process';
 
 export const workflowService = {
   // Ensure default templates exist
