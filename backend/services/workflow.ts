@@ -106,7 +106,9 @@ export const workflowService = {
         // 5. Sync to Meegle
     try {
         // Project Key would typically come from configuration
-        const projectKey = process.env.MEEGLE_PROJECT_KEY || 'POLITICS_DEMO';
+        // Use safe access to process.env to avoid crashes in some environments
+        const env = typeof process !== 'undefined' ? process.env : {};
+        const projectKey = env.MEEGLE_PROJECT_KEY || 'POLITICS_DEMO';
         
         // Validation: If Project Key is still default or missing, we can't sync.
         if (!projectKey || projectKey === 'POLITICS_DEMO') {
@@ -127,7 +129,7 @@ export const workflowService = {
         let targetTypeKey = event.type.toUpperCase();
         
         // 1. Check for explicit manual mapping in env vars
-        const manualMapStr = process.env.MEEGLE_TYPE_MAP;
+        const manualMapStr = env.MEEGLE_TYPE_MAP;
         let manualMap: Record<string, string> = {};
         if (manualMapStr) {
             try {
