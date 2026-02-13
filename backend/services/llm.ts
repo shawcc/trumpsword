@@ -7,6 +7,18 @@ const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o';
 
 export const llmService = {
   async analyzeEvent(data: any, source?: string) {
+    // 0. Force-classify based on source BEFORE calling LLM
+    // This overrides any AI hallucination or text-based misclassification
+    const safeSource = (source || data.source || '').toLowerCase();
+    if (safeSource === 'truth_social' || safeSource === 'x') {
+        return {
+            type: 'social_post',
+            confidence: 1.0,
+            summary: data.content || data.title, // Social posts are short, use content as summary
+            extracted_entities: [] // Can be enhanced later
+        };
+    }
+
     // If no API key, fallback to simple rule-based mock logic
     if (!OPENAI_API_KEY) {
       let type = 'legislative'; // Default

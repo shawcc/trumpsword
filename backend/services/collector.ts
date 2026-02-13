@@ -60,6 +60,7 @@ export const collectorService = {
                 results.added++;
             } catch (e: any) {
                 console.error('Error processing Truth Social post:', e);
+                results.errors.push(`Truth Social Error: ${e.message}`);
             }
         }
         
@@ -70,6 +71,7 @@ export const collectorService = {
                 results.added++;
             } catch (e: any) {
                 console.error('Error processing X post:', e);
+                results.errors.push(`X Error: ${e.message}`);
             }
         }
     } catch (e: any) {

@@ -110,7 +110,15 @@ export const workflowService = {
         
         // Validation: If Project Key is still default or missing, we can't sync.
         if (!projectKey || projectKey === 'POLITICS_DEMO') {
-            console.error('[Workflow] CRITICAL: MEEGLE_PROJECT_KEY is missing or default. Cannot sync to Meegle.');
+            const errorMsg = 'MEEGLE_PROJECT_KEY is missing or default. Cannot sync to Meegle.';
+            console.error(`[Workflow] CRITICAL: ${errorMsg}`);
+            
+            // Update DB to reflect failure so user sees it in UI
+            await supabase.from('events').update({
+                meegle_sync_status: 'failed',
+                meegle_sync_error: errorMsg
+            }).eq('id', event.id);
+
             // We return early but don't throw, so the local process is still created.
             return process;
         }
