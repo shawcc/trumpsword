@@ -64,7 +64,9 @@ async function getAccessToken() {
 
   const data = await response.json();
   if (data.code !== 0) {
-    throw new Error(`Auth Error: ${data.msg}`);
+    const maskedId = PLUGIN_ID ? (PLUGIN_ID.length > 6 ? PLUGIN_ID.substring(0, 6) + '...' : '***') : 'MISSING';
+    const endpointType = AUTH_BASE.includes('feishu') ? 'Feishu' : 'Lark';
+    throw new Error(`Auth Error: ${data.msg}. (ID: ${maskedId}, Region: ${endpointType}. Hint: If using Feishu, set MEEGLE_API_BASE)`);
   }
 
   accessToken = data.tenant_access_token;
