@@ -44,8 +44,47 @@ async function getAccessToken() {
   }
   
   console.log(`[Meegle Debug] Auth using Plugin ID: ${PLUGIN_ID?.substring(0, 5)}...`);
-  console.log(`[Meegle Debug] Auth Endpoint: ${AUTH_BASE}`);
+  
+  // Dual Auth Mode:
+  // 1. Meegle Plugin (MII_ prefix): Uses /open_api/authen/plugin_token on project host
+  // 2. Custom App (cli_ prefix): Uses /open-apis/auth/v3/tenant_access_token/internal on open platform host
+  
+  if (PLUGIN_ID.startsWith('MII_')) {
+      const pluginAuthUrl = 'https://project.feishu.cn/open_api/authen/plugin_token';
+      console.log(`[Meegle Debug] Detected Meegle Plugin ID. Using Endpoint: ${pluginAuthUrl}`);
+      
+      const response = await fetch(pluginAuthUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plugin_id: PLUGIN_ID,
+          plugin_secret: PLUGIN_SECRET
+        })
+      });
+      
+      if (!response.ok) {
+         throw new Error(`Plugin Auth HTTP Error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      if (data.code !== 0) {
+         throw new Error(`Plugin Auth Error: ${data.msg} (Code: ${data.code})`);
+      }
+      
+      // Plugin Token response structure usually has 'data.token' or 'data.plugin_token'
+      // Based on common Feishu patterns: data: { plugin_token: "...", expire_in: ... }
+      accessToken = data.data?.plugin_token || data.data?.token;
+      if (!accessToken) {
+          throw new Error(`Plugin Auth Success but no token found in response: ${JSON.stringify(data)}`);
+      }
+      // Plugin tokens usually expire fast, set a safe default if not provided
+      const expire = data.data?.expire_in || 7200;
+      tokenExpiry = now + (expire - 60) * 1000;
+      return accessToken;
+  }
 
+  // Fallback to Standard Custom App Auth (cli_)
+  console.log(`[Meegle Debug] Detected Standard App ID. Auth Endpoint: ${AUTH_BASE}`);
   console.log('Fetching new Meegle tenant access token (Plugin Auth)...');
   // Note: Meegle Plugins use the same auth endpoint as Lark Apps for tenant_access_token
   // using app_id = plugin_id and app_secret = plugin_secret.
