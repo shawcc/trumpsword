@@ -1,6 +1,8 @@
 import { supabase } from '../lib/supabase.js';
 import { meegleService } from './meegle.js';
-import process from 'process';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 export const workflowService = {
   // Ensure default templates exist
@@ -108,7 +110,9 @@ export const workflowService = {
     try {
         // Project Key would typically come from configuration
         // Use safe access to process.env to avoid crashes in some environments
-        const env = (typeof process !== 'undefined' && process.env) || {};
+        // Use globalThis to ensure we access the real global process, not a shim
+        const proc = globalThis.process || (globalThis as any).process || {};
+        const env = proc.env || {};
         const projectKey = env.MEEGLE_PROJECT_KEY || 'POLITICS_DEMO';
         
         // Validation: If Project Key is still default or missing, we can't sync.
