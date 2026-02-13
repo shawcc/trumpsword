@@ -112,7 +112,8 @@ export const workflowService = {
         
         // Validation: If Project Key is still default or missing, we can't sync.
         if (!projectKey || projectKey === 'POLITICS_DEMO') {
-            const errorMsg = 'MEEGLE_PROJECT_KEY is missing or default. Cannot sync to Meegle.';
+            const debugInfo = `Key=${projectKey ? (projectKey === 'POLITICS_DEMO' ? 'DEFAULT' : 'SET') : 'MISSING'}, PluginID=${env.MEEGLE_PLUGIN_ID ? 'SET' : 'MISSING'}`;
+            const errorMsg = `MEEGLE_PROJECT_KEY is missing or default. Cannot sync to Meegle. (${debugInfo})`;
             console.error(`[Workflow] CRITICAL: ${errorMsg}`);
             
             // Update DB to reflect failure so user sees it in UI
