@@ -107,7 +107,7 @@ export const workflowService = {
     try {
         // Project Key would typically come from configuration
         // Use safe access to process.env to avoid crashes in some environments
-        const env = typeof process !== 'undefined' ? process.env : {};
+        const env = (typeof process !== 'undefined' && process.env) || {};
         const projectKey = env.MEEGLE_PROJECT_KEY || 'POLITICS_DEMO';
         
         // Validation: If Project Key is still default or missing, we can't sync.
